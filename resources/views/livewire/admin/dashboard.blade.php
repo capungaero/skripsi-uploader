@@ -43,9 +43,9 @@
                         </defs>
                         <rect :x="Math.min(Math.max(pts[sel].x - 16, 0), {{ $w - 32 }})" y="0" width="32" height="{{ $h }}" rx="12" fill="#ffffff" fill-opacity=".14"/>
                         <path d="{{ $area }}" fill="url(#areaFill)"/>
-                        <path d="{{ $line }}" fill="none" stroke="#f68bb2" stroke-width="3" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+                        <path d="{{ $line }}" fill="none" stroke="#fde047" stroke-width="3" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
                     </svg>
-                    <span class="pointer-events-none absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-white bg-accent-400 shadow"
+                    <span class="pointer-events-none absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-[3px] border-white bg-yellow-300 shadow"
                           :style="`left: ${pts[sel].x / {{ $w }} * 100}%; top: ${pts[sel].y / {{ $h }} * 100}%`"></span>
                     {{-- Tooltip flips to the left of the point in the right half so it never leaves the card. --}}
                     <div class="pointer-events-none absolute -translate-y-full rounded-xl bg-brand-900/70 px-3 py-1.5 text-center text-xs backdrop-blur"

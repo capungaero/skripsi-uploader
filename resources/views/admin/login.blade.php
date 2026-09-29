@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Login Admin · Skripsi Uploader</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo-unand.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css'])
@@ -12,9 +13,9 @@
 <div class="w-full max-w-sm rounded-[2.5rem] bg-white/60 p-3 shadow-float ring-1 ring-white/70 backdrop-blur">
     <div class="card-violet relative overflow-hidden px-6 pt-6 pb-10">
         <svg class="absolute right-0 bottom-0 h-20 w-44 text-white/10" viewBox="0 0 176 80" fill="currentColor" aria-hidden="true"><path d="M0 80 C40 20 70 70 110 30 S160 10 176 0 V80Z"/></svg>
-        <span class="icon-badge-soft mb-4"><x-icon name="library" class="h-6 w-6"/></span>
-        <p class="text-xs text-brand-100">Perpustakaan Universitas Andalas</p>
-        <h1 class="text-xl font-semibold">Skripsi Uploader</h1>
+        <x-brand light size="lg" class="relative mb-5"/>
+        <p class="relative text-xs text-white/75">Panel admin</p>
+        <h1 class="relative text-xl font-semibold">Skripsi Uploader</h1>
     </div>
     <form method="POST" action="{{ route('admin.login') }}" class="card relative -mt-6 space-y-4 p-6">
         @csrf

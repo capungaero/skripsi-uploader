@@ -5,20 +5,20 @@
 @source "../**/*.blade.php";
 @source "../**/*.js";
 
-/* Soft violet dashboard theme: lavender canvas, violet primary, pink accent, big rounded cards. */
+/* Fresh green theme from the Universitas Andalas logo: mint canvas, green primary, pink accent, big rounded cards. */
 @theme {
     --font-sans: 'Poppins', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
 
-    --color-brand-50: #f4f2fd;
-    --color-brand-100: #e9e5fb;
-    --color-brand-200: #d4ccf6;
-    --color-brand-300: #b6a9ef;
-    --color-brand-400: #9887e6;
-    --color-brand-500: #7f6cdd;
-    --color-brand-600: #6c5ad0;
-    --color-brand-700: #5b49bb;
-    --color-brand-800: #4a3a9c;
-    --color-brand-900: #3a2e7a;
+    --color-brand-50: #ecfdf3;
+    --color-brand-100: #d1fae0;
+    --color-brand-200: #a4f0c3;
+    --color-brand-300: #67e09c;
+    --color-brand-400: #2fca74;
+    --color-brand-500: #12b05c;
+    --color-brand-600: #0c9a4f;
+    --color-brand-700: #0a7d41;
+    --color-brand-800: #0c6337;
+    --color-brand-900: #0b4f2e;
 
     --color-accent-100: #fde3ed;
     --color-accent-300: #f9a8c6;
@@ -26,11 +26,11 @@
     --color-accent-500: #f06d9c;
     --color-accent-600: #e0527f;
 
-    --color-canvas: #c9cde6;
-    --color-surface: #f7f7fb;
+    --color-canvas: #cfe9d9;
+    --color-surface: #f4faf6;
 
-    --shadow-soft: 0 10px 30px -12px rgb(74 58 156 / 0.25);
-    --shadow-float: 0 18px 40px -16px rgb(74 58 156 / 0.45);
+    --shadow-soft: 0 10px 30px -12px rgb(10 125 65 / 0.22);
+    --shadow-float: 0 18px 40px -16px rgb(10 125 65 / 0.4);
     --radius-4xl: 2rem;
 }
 

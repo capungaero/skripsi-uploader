@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? 'Admin' }} · Skripsi Uploader</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo-unand.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css'])
@@ -37,8 +38,8 @@
         {{-- Floating icon rail (bottom bar on phones) --}}
         <aside class="fixed inset-x-3 bottom-3 z-30 flex items-center justify-around rounded-3xl bg-gradient-to-b from-brand-500 to-brand-700 px-2 py-2 shadow-float
                       md:sticky md:top-5 md:inset-auto md:h-[calc(100vh-4.5rem)] md:w-20 md:flex-col md:justify-start md:gap-3 md:py-5">
-            <a href="{{ route('admin.dashboard') }}" wire:navigate class="hidden h-11 w-11 items-center justify-center rounded-2xl bg-white/15 text-white ring-1 ring-white/30 md:mb-4 md:flex" title="Skripsi Uploader">
-                <x-icon name="library" class="h-5 w-5"/>
+            <a href="{{ route('admin.dashboard') }}" wire:navigate class="hidden h-12 w-12 items-center justify-center rounded-2xl bg-white p-1 shadow-soft md:mb-4 md:flex" title="Perpustakaan Universitas Andalas">
+                <img src="{{ asset('images/logo-unand.png') }}" alt="Logo Universitas Andalas" class="h-full w-full object-contain">
             </a>
             @foreach ($rail as [$route, $pattern, $label, $icon, $superOnly])
                 @if (! $superOnly || $user->isSuperadmin())
@@ -62,10 +63,7 @@
         {{-- Main --}}
         <main class="min-w-0 flex-1 pb-24 md:pb-2">
             <header class="mb-5 flex flex-wrap items-center gap-3 px-1 pt-1 sm:gap-4">
-                <div class="mr-auto">
-                    <p class="text-xs text-slate-400">Perpustakaan Universitas Andalas</p>
-                    <h1 class="text-xl font-semibold text-slate-800 sm:text-2xl">{{ $title ?? 'Admin' }}</h1>
-                </div>
+                <x-brand size="sm" class="mr-auto"/>
                 <form method="GET" action="{{ route('admin.submissions') }}" class="order-last w-full sm:order-none sm:w-72">
                     <label class="relative block">
                         <span class="sr-only">Cari unggahan</span>
@@ -82,6 +80,11 @@
                     <span class="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-accent-400 to-brand-500 text-sm font-semibold text-white shadow-soft">{{ $initials }}</span>
                 </div>
             </header>
+
+            <div class="mb-5 px-1">
+                <p class="text-xs text-slate-400">Skripsi Uploader</p>
+                <h1 class="text-xl font-semibold text-slate-800 sm:text-2xl">{{ $title ?? 'Admin' }}</h1>
+            </div>
 
             @if (request()->routeIs('admin.settings.*'))
                 <nav class="mb-5 flex gap-1 overflow-x-auto rounded-2xl bg-white p-1.5 shadow-soft" aria-label="Pengaturan">

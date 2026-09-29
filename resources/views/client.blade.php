@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ $schema['appearance']['title'] }}</title>
     <meta name="description" content="{{ $schema['appearance']['description'] }}">
+    <link rel="icon" type="image/png" href="{{ asset('images/logo-unand.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/client.js'])
@@ -23,9 +24,8 @@
             <path d="M0 160 C60 60 120 130 190 80 S320 20 380 40 V160Z"/>
         </svg>
         <div class="relative">
-            <span class="icon-badge-soft mb-5"><x-icon name="library" class="h-6 w-6"/></span>
-            <p class="text-xs tracking-wide text-brand-100 uppercase">UPT Perpustakaan Universitas Andalas</p>
-            <h1 class="mt-1 text-2xl leading-snug font-semibold sm:text-3xl">{{ $schema['appearance']['title'] }}</h1>
+            <x-brand light size="lg" class="mb-6"/>
+            <h1 class="text-2xl leading-snug font-semibold sm:text-3xl">{{ $schema['appearance']['title'] }}</h1>
             <p class="mt-3 text-sm leading-relaxed text-brand-100">{{ $schema['appearance']['description'] }}</p>
 
             @if ($schema['open'])
@@ -244,7 +244,7 @@
     </main>
 </div>
 </div>
-<footer class="mt-6 text-center text-xs text-brand-800/60">UPT Perpustakaan Universitas Andalas</footer>
+<footer class="mt-6 flex items-center justify-center gap-2 text-xs text-brand-800/70"><img src="{{ asset('images/logo-unand.png') }}" alt="" class="h-5 w-5"> UPT Perpustakaan Universitas Andalas</footer>
 </div>
 </body>
 </html>
