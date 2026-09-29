@@ -1,5 +1,5 @@
 <div class="space-y-4">
-    <h1 class="text-2xl font-bold">Log Aktivitas</h1>
+
 
     <div class="card grid gap-3 p-4 sm:grid-cols-3">
         <select wire:model.live="actor" class="field-input">
@@ -14,7 +14,7 @@
 
     <div class="card overflow-x-auto">
         <table class="w-full text-sm">
-            <thead class="bg-slate-50 text-left text-xs text-slate-500">
+            <thead class="bg-surface text-left text-xs text-slate-500">
             <tr><th class="px-3 py-2">Waktu</th><th class="px-3 py-2">Aktor</th><th class="px-3 py-2">Aksi</th><th class="px-3 py-2">Unggahan</th><th class="px-3 py-2">Detail</th><th class="px-3 py-2">IP</th></tr>
             </thead>
             <tbody class="divide-y divide-slate-100 align-top">

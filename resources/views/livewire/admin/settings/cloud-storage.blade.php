@@ -1,9 +1,9 @@
 <div class="max-w-4xl space-y-6">
     <div>
-        <h1 class="text-2xl font-bold">Penyimpanan Cloud</h1>
+
         <p class="text-sm text-slate-600">File yang lolos AI dipindahkan dari server ke cloud dengan struktur <code>{{ $form['cloud__root_folder'] }}/&lt;Fakultas&gt;/&lt;NIM&gt;_&lt;Nama&gt;.pdf</code>, lalu salinan di server dihapus.</p>
     </div>
-    @if ($flash)<div class="rounded-lg bg-brand-50 px-3 py-2 text-sm text-brand-800">{{ $flash }}</div>@endif
+    @if ($flash)<div class="rounded-2xl bg-brand-50 px-4 py-3 text-sm text-brand-800">{{ $flash }}</div>@endif
     @if ($testResult)<div class="rounded-lg bg-slate-50 px-3 py-2 font-mono text-xs">{{ $testResult }}</div>@endif
 
     <form wire:submit="save" class="space-y-4">

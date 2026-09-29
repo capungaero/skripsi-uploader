@@ -1,9 +1,9 @@
 <div class="space-y-6">
     <div>
-        <h1 class="text-2xl font-bold">Fakultas & Program Studi</h1>
+
         <p class="text-sm text-slate-600">Nama fakultas dipakai sebagai subfolder cloud. UUID koleksi DSpace menentukan koleksi tujuan item yang disetor.</p>
     </div>
-    @if ($flash)<div class="rounded-lg bg-brand-50 px-3 py-2 text-sm text-brand-800">{{ $flash }}</div>@endif
+    @if ($flash)<div class="rounded-2xl bg-brand-50 px-4 py-3 text-sm text-brand-800">{{ $flash }}</div>@endif
 
     <form wire:submit="save" class="space-y-3">
         @foreach ($rows as $id => $row)

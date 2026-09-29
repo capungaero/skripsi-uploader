@@ -1,6 +1,6 @@
 <div class="max-w-4xl space-y-6">
-    <h1 class="text-2xl font-bold">Notifikasi WhatsApp</h1>
-    @if ($flash)<div class="rounded-lg bg-brand-50 px-3 py-2 text-sm text-brand-800">{{ $flash }}</div>@endif
+
+    @if ($flash)<div class="rounded-2xl bg-brand-50 px-4 py-3 text-sm text-brand-800">{{ $flash }}</div>@endif
 
     <form wire:submit="save" class="space-y-4">
         <div class="card space-y-4 p-5">
@@ -52,6 +52,6 @@
         <div><label class="label">Kirim pesan tes ke nomor</label><input wire:model="testPhone" class="field-input" placeholder="08xxxxxxxxxx"></div>
         <button wire:click="sendTest" wire:loading.attr="disabled" class="btn-secondary">Kirim tes</button>
         @error('testPhone')<p class="w-full text-xs text-red-600">{{ $message }}</p>@enderror
-        @if ($testResult)<p class="w-full rounded bg-slate-50 px-3 py-2 font-mono text-xs">{{ $testResult }}</p>@endif
+        @if ($testResult)<p class="w-full rounded-2xl bg-surface px-4 py-3 font-mono text-xs">{{ $testResult }}</p>@endif
     </div>
 </div>

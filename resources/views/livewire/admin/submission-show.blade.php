@@ -2,7 +2,7 @@
     <div class="flex flex-wrap items-start justify-between gap-3">
         <div>
             <a href="{{ route('admin.submissions') }}" wire:navigate class="text-sm text-slate-500 hover:underline">← Daftar unggahan</a>
-            <h1 class="mt-1 text-2xl font-bold">{{ $s->nim }} · {{ $s->nama }}</h1>
+            <h1 class="mt-1 text-2xl font-semibold text-slate-800">{{ $s->nim }} · {{ $s->nama }}</h1>
             <div class="mt-1 flex flex-wrap items-center gap-2 text-sm text-slate-600">
                 @include('livewire.admin.partials.status-badge', ['submission' => $s])
                 <span>Percobaan terpakai {{ $maxAttempts - $remaining }}/{{ $maxAttempts }}</span>
@@ -13,10 +13,10 @@
         @endif
     </div>
 
-    @if ($flash)<div class="rounded-lg bg-brand-50 px-3 py-2 text-sm text-brand-800">{{ $flash }}</div>@endif
-    @error('status')<div class="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{{ $message }}</div>@enderror
+    @if ($flash)<div class="rounded-2xl bg-brand-50 px-4 py-3 text-sm text-brand-800">{{ $flash }}</div>@endif
+    @error('status')<div class="rounded-2xl bg-accent-100 px-4 py-3 text-sm text-red-700">{{ $message }}</div>@enderror
     @if ($s->last_error)
-        <div class="rounded-lg bg-orange-50 px-3 py-2 text-sm text-orange-800"><span class="font-semibold">Catatan sistem:</span> {{ $s->last_error }}</div>
+        <div class="rounded-2xl bg-orange-50 px-4 py-3 text-sm text-orange-800"><span class="font-semibold">Catatan sistem:</span> {{ $s->last_error }}</div>
     @endif
 
     <div class="grid gap-6 lg:grid-cols-3">

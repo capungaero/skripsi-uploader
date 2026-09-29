@@ -1,6 +1,6 @@
 <div class="space-y-6">
-    <h1 class="text-2xl font-bold">Field Form Unggah</h1>
-    @if ($flash)<div class="rounded-lg bg-brand-50 px-3 py-2 text-sm text-brand-800">{{ $flash }}</div>@endif
+
+    @if ($flash)<div class="rounded-2xl bg-brand-50 px-4 py-3 text-sm text-brand-800">{{ $flash }}</div>@endif
 
     <div class="card flex flex-wrap items-end gap-3 p-4">
         <div>
@@ -24,7 +24,7 @@
 
     <form wire:submit="save" class="card overflow-x-auto">
         <table class="w-full text-sm">
-            <thead class="bg-slate-50 text-left text-xs text-slate-500">
+            <thead class="bg-surface text-left text-xs text-slate-500">
             <tr><th class="px-3 py-2">Urut</th><th class="px-3 py-2">Key / Tipe</th><th class="px-3 py-2">Label</th><th class="px-3 py-2">Wajib</th><th class="px-3 py-2">Aktif</th><th class="px-3 py-2">Detail</th><th></th></tr>
             </thead>
             <tbody class="divide-y divide-slate-100 align-top">

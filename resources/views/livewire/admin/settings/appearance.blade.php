@@ -1,6 +1,6 @@
 <div class="max-w-3xl space-y-6">
-    <h1 class="text-2xl font-bold">Tampilan Halaman Mahasiswa</h1>
-    @if ($flash)<div class="rounded-lg bg-brand-50 px-3 py-2 text-sm text-brand-800">{{ $flash }}</div>@endif
+
+    @if ($flash)<div class="rounded-2xl bg-brand-50 px-4 py-3 text-sm text-brand-800">{{ $flash }}</div>@endif
 
     <form wire:submit="save" class="card space-y-4 p-5">
         <div>

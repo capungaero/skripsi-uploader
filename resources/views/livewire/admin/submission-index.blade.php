@@ -1,6 +1,6 @@
 <div class="space-y-4">
-    <div class="flex flex-wrap items-center justify-between gap-3">
-        <h1 class="text-2xl font-bold">Unggahan Skripsi</h1>
+    <div class="flex flex-wrap items-center justify-end gap-3">
+
         <div class="flex gap-2">
             @if ($selected)
                 <button wire:click="depositSelected" wire:confirm="Setor {{ count($selected) }} unggahan terpilih ke DSpace?" class="btn-primary">
@@ -11,7 +11,7 @@
         </div>
     </div>
 
-    @if ($flash)<div class="rounded-lg bg-brand-50 px-3 py-2 text-sm text-brand-800">{{ $flash }}</div>@endif
+    @if ($flash)<div class="rounded-2xl bg-brand-50 px-4 py-3 text-sm text-brand-800">{{ $flash }}</div>@endif
 
     <div class="card grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-4">
         <input type="search" wire:model.live.debounce.400ms="search" placeholder="Cari NIM, nama, atau fakultas…" class="field-input">
@@ -31,7 +31,7 @@
 
     <div class="card overflow-x-auto">
         <table class="w-full text-sm">
-            <thead class="bg-slate-50 text-left text-xs text-slate-500">
+            <thead class="bg-surface text-left text-xs text-slate-500">
             <tr>
                 <th class="w-8 px-3 py-2"></th>
                 <th class="px-3 py-2">NIM / Nama</th>

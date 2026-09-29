@@ -1,6 +1,6 @@
 <div class="space-y-6">
-    <h1 class="text-2xl font-bold">AI & Kriteria Pengecekan</h1>
-    @if ($flash)<div class="rounded-lg bg-brand-50 px-3 py-2 text-sm text-brand-800">{{ $flash }}</div>@endif
+
+    @if ($flash)<div class="rounded-2xl bg-brand-50 px-4 py-3 text-sm text-brand-800">{{ $flash }}</div>@endif
 
     <form wire:submit="save" class="card max-w-3xl space-y-4 p-5">
         <h2 class="font-semibold">Koneksi AI (format OpenAI-compatible)</h2>
@@ -36,7 +36,7 @@
                 <span wire:loading.remove wire:target="testConnection">Tes koneksi</span><span wire:loading wire:target="testConnection">Menguji…</span>
             </button>
         </div>
-        @if ($testResult)<p class="rounded bg-slate-50 px-3 py-2 font-mono text-xs">{{ $testResult }}</p>@endif
+        @if ($testResult)<p class="rounded-2xl bg-surface px-4 py-3 font-mono text-xs">{{ $testResult }}</p>@endif
     </form>
 
     <form wire:submit="saveCriteria" class="space-y-3">

@@ -1,9 +1,9 @@
 <div class="max-w-3xl space-y-6">
     <div>
-        <h1 class="text-2xl font-bold">Integrasi DSpace</h1>
+
         <p class="text-sm text-slate-600">Item disetor lewat REST API DSpace 7+ langsung sebagai item terbit (arsip) di koleksi fakultas, dengan PDF di bundle ORIGINAL. Akun harus administrator (atau admin koleksi) DSpace.</p>
     </div>
-    @if ($flash)<div class="rounded-lg bg-brand-50 px-3 py-2 text-sm text-brand-800">{{ $flash }}</div>@endif
+    @if ($flash)<div class="rounded-2xl bg-brand-50 px-4 py-3 text-sm text-brand-800">{{ $flash }}</div>@endif
 
     <form wire:submit="save" class="card space-y-4 p-5">
         <label class="flex items-center gap-2 text-sm"><input type="checkbox" wire:model="form.dspace__enabled"> Aktifkan integrasi DSpace</label>
@@ -32,7 +32,7 @@
             <button class="btn-primary">Simpan</button>
             <button type="button" wire:click="testLogin" wire:loading.attr="disabled" class="btn-secondary">Tes login</button>
         </div>
-        @if ($testResult)<p class="rounded bg-slate-50 px-3 py-2 font-mono text-xs">{{ $testResult }}</p>@endif
+        @if ($testResult)<p class="rounded-2xl bg-surface px-4 py-3 font-mono text-xs">{{ $testResult }}</p>@endif
         <p class="text-xs text-slate-500">UUID koleksi tujuan diatur per fakultas di menu <a href="{{ route('admin.settings.faculties') }}" wire:navigate class="underline">Fakultas & Prodi</a>.</p>
     </form>
 </div>
