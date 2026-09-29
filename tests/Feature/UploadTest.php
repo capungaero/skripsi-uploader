@@ -86,6 +86,15 @@ class UploadTest extends TestCase
         $this->postJson('/api/submissions', $this->uploadPayload())->assertStatus(422)->assertJsonValidationErrors('nim');
     }
 
+    public function test_same_pdf_cannot_be_filed_under_another_nim(): void
+    {
+        $this->postJson('/api/submissions', $this->uploadPayload())->assertCreated();
+
+        $this->postJson('/api/submissions', $this->uploadPayload(['nim' => '2011012999']))
+            ->assertStatus(422)->assertJsonValidationErrors('file');
+        $this->assertSame(1, Submission::count());
+    }
+
     public function test_three_rejections_exhaust_attempts_until_admin_reset(): void
     {
         foreach (range(1, 3) as $i) {

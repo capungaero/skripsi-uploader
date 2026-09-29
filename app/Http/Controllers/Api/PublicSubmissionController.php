@@ -71,6 +71,15 @@ class PublicSubmissionController extends Controller
 
             $size = $file->getSize();
             $hash = hash_file('sha256', $file->getRealPath());
+
+            // One thesis PDF belongs to one NIM: the same file cannot be filed under another NIM.
+            $taken = Submission::where('file_hash', $hash)->where('nim', '!=', $nim)
+                ->whereIn('status', Submission::ACTIVE)->exists();
+            if ($taken) {
+                $message = 'File PDF ini sudah pernah diunggah dengan NIM lain. Satu file skripsi hanya untuk satu NIM.';
+
+                return response()->json(['message' => $message, 'errors' => ['file' => [$message]]], 422);
+            }
             $original = mb_substr(Submission::safeFolderName($file->getClientOriginalName()), 0, 200) ?: 'skripsi.pdf';
 
             $submission = Submission::create([
