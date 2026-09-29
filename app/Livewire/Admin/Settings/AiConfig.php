@@ -20,7 +20,7 @@ class AiConfig extends SettingsForm
 
     protected function keys(): array
     {
-        return ['ai.enabled', 'ai.base_url', 'ai.api_key', 'ai.model', 'ai.json_mode', 'ai.timeout', 'ai.max_images', 'ai.max_text_chars'];
+        return ['ai.enabled', 'ai.base_url', 'ai.api_key', 'ai.model', 'ai.json_mode', 'ai.timeout', 'ai.max_images', 'ai.max_text_chars', 'ai.max_tokens'];
     }
 
     public function mount(Settings $settings): void
@@ -46,6 +46,7 @@ class AiConfig extends SettingsForm
             'form.ai__timeout' => ['required', 'integer', 'min:10', 'max:600'],
             'form.ai__max_images' => ['required', 'integer', 'min:0', 'max:20'],
             'form.ai__max_text_chars' => ['required', 'integer', 'min:2000', 'max:200000'],
+            'form.ai__max_tokens' => ['required', 'integer', 'min:500', 'max:64000'],
         ]);
     }
 

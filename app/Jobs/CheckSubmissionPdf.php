@@ -72,6 +72,10 @@ class CheckSubmissionPdf implements ShouldQueue
         if (! $client->isConfigured()) {
             throw new \RuntimeException('AI belum dikonfigurasi (base URL, token, model).');
         }
+        if ($criteria->contains('needs_image', true) && ! $inspector->canRender()) {
+            // Without page images signatures cannot be judged; never reject a student for a server problem.
+            throw new \RuntimeException('pdftoppm (poppler-utils) tidak tersedia: gambar halaman tidak bisa dibuat untuk kriteria visual.');
+        }
 
         $started = microtime(true);
         $result = $evaluator->evaluate($path, $report, $criteria);

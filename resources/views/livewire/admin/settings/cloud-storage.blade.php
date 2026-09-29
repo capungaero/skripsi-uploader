@@ -25,7 +25,7 @@
 
         @php
             $blocks = [
-                'gdrive' => [['gdrive.client_id', 'Client ID', false], ['gdrive.client_secret', 'Client secret', true], ['gdrive.parent_id', 'ID folder induk / Shared Drive (opsional)', false]],
+                'gdrive' => [['gdrive.client_id', 'Client ID', false], ['gdrive.client_secret', 'Client secret', true], ['gdrive.parent_id', 'ID folder induk (opsional, dari URL drive.google.com/drive/folders/<ID>)', false]],
                 'onedrive' => [['onedrive.client_id', 'Application (client) ID', false], ['onedrive.client_secret', 'Client secret', true], ['onedrive.tenant', 'Tenant (common / id tenant unand)', false]],
                 'dropbox' => [['dropbox.app_key', 'App key', false], ['dropbox.app_secret', 'App secret', true]],
             ];

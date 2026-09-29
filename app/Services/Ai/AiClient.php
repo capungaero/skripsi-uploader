@@ -28,8 +28,10 @@ class AiClient
      * @param  array<int, array{role: string, content: mixed}>  $messages
      * @return string the assistant message content
      */
-    public function chat(array $messages, ?int $maxTokens = 2000): string
+    public function chat(array $messages, ?int $maxTokens = null): string
     {
+        // Reasoning models (MiMo, Gemini 2.5, ...) spend part of this budget thinking before they answer.
+        $maxTokens ??= $this->settings->int('ai.max_tokens') ?: 8000;
         $payload = [
             'model' => $this->model(),
             'messages' => $messages,
@@ -57,7 +59,12 @@ class AiClient
             $content = implode('', array_map(fn ($p) => $p['text'] ?? '', $content));
         }
         if (! is_string($content) || trim($content) === '') {
-            throw new AiRequestException('AI response has no message content.');
+            $reason = $response->json('choices.0.finish_reason');
+            throw new AiRequestException('AI response has no message content'
+                .($reason === 'length' ? ' (max_tokens habis; naikkan "Maks. token jawaban").' : '.'));
+        }
+        if ($response->json('choices.0.finish_reason') === 'length') {
+            throw new AiRequestException('AI answer was cut off at max_tokens; naikkan "Maks. token jawaban".');
         }
 
         return $content;
@@ -69,7 +76,7 @@ class AiClient
         return $this->chat([
             ['role' => 'system', 'content' => 'Balas hanya dengan JSON.'],
             ['role' => 'user', 'content' => 'Kirim {"ok": true}'],
-        ], 50);
+        ]);
     }
 
     private function endpoint(): string

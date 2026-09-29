@@ -40,6 +40,7 @@ class Settings
         'ai.timeout' => 120,
         'ai.max_images' => 8,
         'ai.max_text_chars' => 24000,
+        'ai.max_tokens' => 8000,
 
         'cloud.provider' => 'none', // none, gdrive, onedrive, dropbox
         'cloud.root_folder' => 'Koleksi Skripsi',

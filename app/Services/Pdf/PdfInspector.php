@@ -41,6 +41,18 @@ class PdfInspector
         return new PdfReport(count($pages), $pages);
     }
 
+    /** Whether pdftoppm is available to render page images. */
+    public function canRender(): bool
+    {
+        try {
+            $result = Process::timeout(15)->run([$this->bin('pdftoppm'), '-v']);
+        } catch (\Throwable) {
+            return false;
+        }
+
+        return in_array($result->exitCode(), [0, 99], true); // some builds exit 99 for -v
+    }
+
     /** Render one page to a JPEG (longest side $maxSide px) and return the bytes. */
     public function renderJpeg(string $path, int $page, int $maxSide = 1400): ?string
     {
@@ -108,7 +120,12 @@ class PdfInspector
     {
         $dir = (string) config('skripsi.poppler_path');
 
-        return $dir === '' ? $name : rtrim($dir, '\\/').DIRECTORY_SEPARATOR.$name;
+        if ($dir === '') {
+            return $name;
+        }
+        $path = rtrim($dir, '\\/').DIRECTORY_SEPARATOR.$name;
+
+        return PHP_OS_FAMILY === 'Windows' && is_file($path.'.exe') ? $path.'.exe' : $path;
     }
 
     private function cleanText(string $text): string

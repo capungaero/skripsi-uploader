@@ -40,7 +40,7 @@ class AiCheckTest extends TestCase
         ]);
         Process::fake([
             '*pdftotext*' => Process::result(output: $this->pdfText()),
-            '*pdftoppm*' => Process::result(exitCode: 1), // no renderer: text-only evaluation
+            '*pdftoppm*' => Process::result(), // renderer present; faked renders produce no image file
         ]);
     }
 
@@ -151,6 +151,45 @@ class AiCheckTest extends TestCase
 
         $this->expectException(AiRequestException::class);
         $evaluator->parse(json_encode(['criteria' => array_slice($items, 1)]), $criteria);
+    }
+
+    public function test_missing_renderer_is_an_error_not_a_rejection(): void
+    {
+        Http::fake();
+        Process::fake([
+            '*pdftotext*' => Process::result(output: $this->pdfText()),
+            '*pdftoppm*' => Process::result(errorOutput: "'pdftoppm' is not recognized", exitCode: 1),
+        ]);
+        $submission = $this->stagedSubmission();
+
+        try {
+            $this->runJob($submission);
+            $this->fail('Expected exception');
+        } catch (\RuntimeException $e) {
+            $this->assertStringContainsString('pdftoppm', $e->getMessage());
+        }
+
+        $this->assertSame(Submission::CHECKING, $submission->fresh()->status);
+        Http::assertNothingSent();
+    }
+
+    public function test_textless_front_pages_are_sent_as_images_not_called_blank(): void
+    {
+        $report = new \App\Services\Pdf\PdfReport(6, [
+            1 => 'JUDUL SKRIPSI UJI AKTIVITAS', 2 => '', 3 => '',
+            4 => 'DAFTAR ISI BAB I', 5 => "BAB I
+PENDAHULUAN", 6 => 'DAFTAR PUSTAKA',
+        ]);
+        $criteria = AiCriterion::where('active', true)->orderBy('sort')->get();
+        $evaluator = app(SubmissionEvaluator::class);
+
+        $plan = $evaluator->planPages($report, $criteria, []);
+        $this->assertArrayHasKey(2, $plan['image_pages']);
+        $this->assertContains('tanda_tangan_pembimbing', $plan['image_pages'][2]);
+
+        $digest = json_encode($evaluator->buildMessages($report, $criteria, $plan, [], []));
+        $this->assertStringContainsString('Halaman kosong terdeteksi (dicek visual): tidak ada', $digest);
+        $this->assertStringContainsString('bukan berarti kosong): 2, 3', $digest);
     }
 
     public function test_ai_disabled_sends_everything_to_manual_queue(): void

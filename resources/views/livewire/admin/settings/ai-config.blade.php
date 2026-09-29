@@ -23,7 +23,8 @@
                 <input id="model" wire:model="form.ai__model" class="field-input font-mono text-sm" placeholder="gemini-2.5-flash">
             </div>
         </div>
-        <div class="grid gap-4 sm:grid-cols-3">
+        <div class="grid gap-4 sm:grid-cols-4">
+            <div><label class="label">Maks. token jawaban</label><input type="number" wire:model="form.ai__max_tokens" class="field-input"></div>
             <div><label class="label">Timeout (detik)</label><input type="number" wire:model="form.ai__timeout" class="field-input"></div>
             <div><label class="label">Maks. gambar halaman</label><input type="number" wire:model="form.ai__max_images" class="field-input"></div>
             <div><label class="label">Maks. karakter teks</label><input type="number" wire:model="form.ai__max_text_chars" class="field-input"></div>

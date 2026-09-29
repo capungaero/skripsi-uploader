@@ -44,8 +44,8 @@ class SubmissionEvaluator
 
         $blank = [];
         foreach (array_slice($report->textlessPages(), 0, 40) as $page) {
-            $visual = $this->inspector->isVisuallyBlank($path, $page);
-            if ($visual !== false) { // true, or unknown without pdftoppm
+            // Only visually confirmed pages count: a page without text is often a scanned, signed approval sheet.
+            if ($this->inspector->isVisuallyBlank($path, $page) === true) {
                 $blank[] = $page;
             }
         }
@@ -72,6 +72,10 @@ class SubmissionEvaluator
                 // Approval pages live in the front matter; search there first to skip mentions inside chapters.
                 $front = new PdfReport($report->pageCount, array_slice($report->pages, 0, self::FRONT_MATTER_PAGES, true));
                 $pages = $front->findPages($keywords, 2) ?: $report->findPages($keywords, 2);
+                if ($criterion->needs_image) {
+                    // Signed approval sheets are usually scans without a text layer, so keywords cannot find them.
+                    $pages = array_merge($pages, $this->scannedFrontPages($report, $blankPages));
+                }
             } elseif ($criterion->needs_image) {
                 $pages = array_merge(array_slice($blankPages, 0, 3), $this->samplePages($report));
             }
@@ -153,7 +157,9 @@ TXT;
         $lines = [
             'Jumlah halaman: '.$report->pageCount,
             'Dokumen hasil pindai (tanpa lapisan teks): '.($report->isScanned() ? 'ya' : 'tidak'),
-            'Halaman kosong terdeteksi: '.($blankPages ? implode(', ', $blankPages) : 'tidak ada'),
+            'Halaman kosong terdeteksi (dicek visual): '.($blankPages ? implode(', ', $blankPages) : 'tidak ada'),
+            'Halaman tanpa lapisan teks (bisa berupa hasil pindai/gambar, bukan berarti kosong): '
+                .(($textless = array_diff($report->textlessPages(), $blankPages)) ? implode(', ', array_slice($textless, 0, 30)) : 'tidak ada'),
             'Gambar halaman terlampir: '.($images ? implode(', ', array_keys($images)) : 'tidak ada'),
             '',
             'Judul bab yang ditemukan (halaman: judul):',
@@ -183,6 +189,14 @@ TXT;
         }
 
         return $digest;
+    }
+
+    /** Front-matter pages that have no text but are not blank: likely scanned sheets. */
+    private function scannedFrontPages(PdfReport $report, array $blankPages): array
+    {
+        $front = array_filter($report->textlessPages(), fn ($p) => $p <= self::FRONT_MATTER_PAGES);
+
+        return array_slice(array_values(array_diff($front, $blankPages)), 0, 3);
     }
 
     /** A few pages spread through the body, for spotting cut-off text. */
