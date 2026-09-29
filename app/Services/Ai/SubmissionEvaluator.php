@@ -139,7 +139,7 @@ Jawab HANYA dengan JSON valid berformat:
 {"criteria": [{"key": "<key>", "score": <0-100>, "reason": "<alasan>"}], "summary": "<ringkasan satu kalimat>"}
 TXT;
 
-        $content = [['type' => 'text', 'text' => $this->documentDigest($report, $plan, $blankPages, $images)]];
+        $content = [['type' => 'text', 'text' => $this->documentDigest($report, $criteria, $plan, $blankPages, $images)]];
         foreach ($images as $page => $base64) {
             $content[] = ['type' => 'text', 'text' => "Gambar halaman {$page}:"];
             $content[] = ['type' => 'image_url', 'image_url' => ['url' => 'data:image/jpeg;base64,'.$base64]];
@@ -151,7 +151,7 @@ TXT;
         ];
     }
 
-    private function documentDigest(PdfReport $report, array $plan, array $blankPages, array $images): string
+    private function documentDigest(PdfReport $report, Collection $criteria, array $plan, array $blankPages, array $images): string
     {
         $limit = $this->settings->int('ai.max_text_chars') ?: 24000;
         $lines = [
@@ -162,8 +162,16 @@ TXT;
                 .(($textless = array_diff($report->textlessPages(), $blankPages)) ? implode(', ', array_slice($textless, 0, 30)) : 'tidak ada'),
             'Gambar halaman terlampir: '.($images ? implode(', ', array_keys($images)) : 'tidak ada'),
             '',
-            'Judul bab yang ditemukan (halaman: judul):',
         ];
+
+        // Where each criterion keyword occurs, so the model can confirm sections it does not see as text.
+        $lines[] = 'Peta kata kunci (kata kunci: halaman ditemukan):';
+        foreach ($criteria->pluck('page_keywords')->flatten()->filter()->unique() as $keyword) {
+            $found = $report->findPages([$keyword], 6);
+            $lines[] = "  {$keyword}: ".($found ? implode(', ', $found) : 'tidak ditemukan');
+        }
+        $lines[] = '';
+        $lines[] = 'Judul bab yang ditemukan (halaman: judul):';
 
         $headings = $report->chapterHeadings();
         foreach (array_slice($headings, 0, 40) as $h) {
@@ -196,7 +204,8 @@ TXT;
     {
         $front = array_filter($report->textlessPages(), fn ($p) => $p <= self::FRONT_MATTER_PAGES);
 
-        return array_slice(array_values(array_diff($front, $blankPages)), 0, 3);
+        // Approval, examiner and originality sheets are often all scans; five covers the usual set.
+        return array_slice(array_values(array_diff($front, $blankPages)), 0, 5);
     }
 
     /** A few pages spread through the body, for spotting cut-off text. */

@@ -190,6 +190,7 @@ PENDAHULUAN", 6 => 'DAFTAR PUSTAKA',
         $digest = json_encode($evaluator->buildMessages($report, $criteria, $plan, [], []));
         $this->assertStringContainsString('Halaman kosong terdeteksi (dicek visual): tidak ada', $digest);
         $this->assertStringContainsString('bukan berarti kosong): 2, 3', $digest);
+        $this->assertStringContainsString('DAFTAR PUSTAKA: 6', $digest);
     }
 
     public function test_ai_disabled_sends_everything_to_manual_queue(): void
