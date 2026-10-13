@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title ?? 'Admin' }} · Skripsi Uploader</title>
+    <title>{{ $title ?? 'Admin' }} · Karya Ilmiah Uploader</title>
     <link rel="icon" type="image/png" href="{{ asset('images/logo-unand.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -28,6 +28,7 @@
         ['admin.settings.cloud', 'Cloud'],
         ['admin.settings.whatsapp', 'WhatsApp'],
         ['admin.settings.dspace', 'DSpace'],
+        ['admin.settings.kliring', 'Kliring'],
     ];
     $initials = collect(explode(' ', $user->name))->filter()->take(2)->map(fn ($p) => mb_strtoupper(mb_substr($p, 0, 1)))->implode('');
 @endphp
@@ -82,7 +83,7 @@
             </header>
 
             <div class="mb-5 px-1">
-                <p class="text-xs text-slate-400">Skripsi Uploader</p>
+                <p class="text-xs text-slate-400">Karya Ilmiah Uploader</p>
                 <h1 class="text-xl font-semibold text-slate-800 sm:text-2xl">{{ $title ?? 'Admin' }}</h1>
             </div>
 

@@ -53,7 +53,7 @@
     @if (! $schema['open'])
         <div class="card flex h-full flex-col items-center justify-center gap-3 p-10 text-center">
             <span class="icon-badge"><x-icon name="clock" class="h-6 w-6"/></span>
-            <p class="text-slate-600">Pengunggahan skripsi sedang ditutup. Silakan hubungi perpustakaan.</p>
+            <p class="text-slate-600">Pengunggahan Karya Ilmiah sedang ditutup. Silakan hubungi perpustakaan.</p>
         </div>
     @else
 
@@ -62,7 +62,7 @@
         <div class="mb-6 flex items-center gap-3">
             <span class="icon-badge"><x-icon name="upload" class="h-6 w-6"/></span>
             <div>
-                <h2 class="text-lg font-semibold text-slate-800">Formulir unggah skripsi</h2>
+                <h2 class="text-lg font-semibold text-slate-800">Formulir unggah Karya Ilmiah</h2>
                 <p class="text-xs text-slate-400">Kolom bertanda <span class="text-accent-500">*</span> wajib diisi</p>
             </div>
         </div>
@@ -81,16 +81,9 @@
                     </template>
 
                     <template x-if="field.type === 'faculty'">
-                        <select :id="fieldId(field.key)" x-model="values[field.key]" @change="values.prodi = ''; validateField(field)" class="field-input">
+                        <select :id="fieldId(field.key)" x-model="values[field.key]" @change="validateField(field)" class="field-input">
                             <option value="">— Pilih fakultas —</option>
                             <template x-for="f in schema.faculties" :key="f.id"><option :value="f.id" x-text="f.name"></option></template>
-                        </select>
-                    </template>
-
-                    <template x-if="field.type === 'program'">
-                        <select :id="fieldId(field.key)" x-model="values[field.key]" @change="validateField(field)" :disabled="!values.fakultas" class="field-input">
-                            <option value="" x-text="values.fakultas ? '— Pilih program studi —' : '— Pilih fakultas dulu —'"></option>
-                            <template x-for="p in programs" :key="p.id"><option :value="p.id" x-text="p.name"></option></template>
                         </select>
                     </template>
 
@@ -122,7 +115,7 @@
 
         {{-- File --}}
         <div class="mt-5">
-            <span class="label">File PDF skripsi <span class="text-accent-500">*</span></span>
+            <span class="label">File PDF Karya Ilmiah <span class="text-accent-500">*</span></span>
             <label class="flex cursor-pointer items-center gap-4 rounded-3xl border-2 border-dashed p-5 transition"
                    :class="dragging ? 'border-brand-400 bg-brand-50' : (fileError ? 'border-accent-300 bg-accent-100/40' : (file ? 'border-brand-300 bg-brand-50/60' : 'border-slate-200 bg-surface hover:border-brand-300'))"
                    @dragover.prevent="dragging = true" @dragleave.prevent="dragging = false" @drop.prevent="onDrop($event)">
@@ -144,7 +137,7 @@
 
         <div x-show="formError" x-text="formError" class="mt-5 rounded-2xl bg-accent-100 px-4 py-3 text-sm text-accent-600"></div>
 
-        <button type="submit" class="btn-primary mt-6 w-full py-3.5 text-base"><x-icon name="upload" class="h-5 w-5"/> Unggah Skripsi</button>
+        <button type="submit" class="btn-primary mt-6 w-full py-3.5 text-base"><x-icon name="upload" class="h-5 w-5"/> Unggah Karya Ilmiah</button>
     </form>
 
     {{-- Uploading --}}
@@ -182,8 +175,8 @@
                     <p class="relative mt-5 rounded-2xl bg-white/15 px-4 py-3 text-sm ring-1 ring-white/20">
                         <span x-show="status.state === 'checking'">File sedang diperiksa otomatis (tanda tangan, pengesahan, daftar isi, struktur bab). Biasanya 1–3 menit; halaman ini diperbarui sendiri.</span>
                         <span x-show="status.state === 'accepted'">File lolos pengecekan otomatis dan masuk antrean verifikasi manual pustakawan. Anda akan menerima notifikasi WhatsApp.</span>
-                        <span x-show="status.state === 'verified'">Skripsi sudah diverifikasi pustakawan dan sedang disimpan ke repositori.</span>
-                        <span x-show="status.state === 'deposited'">Skripsi tersimpan di repositori Universitas Andalas.
+                        <span x-show="status.state === 'verified'">Karya Ilmiah sudah diverifikasi pustakawan dan sedang disimpan ke repositori.</span>
+                        <span x-show="status.state === 'deposited'">Karya Ilmiah tersimpan di repositori Universitas Andalas.
                             <a x-show="status.handle_url" :href="status.handle_url" target="_blank" rel="noopener" class="font-semibold underline">Lihat di repositori</a></span>
                         <span x-show="status.state === 'rejected'" x-text="status.can_reupload ? `Perbaiki file sesuai alasan di bawah lalu unggah ulang. Sisa percobaan: ${status.remaining_attempts}.` : 'Batas percobaan habis. Silakan hubungi perpustakaan.'"></span>
                     </p>

@@ -8,6 +8,7 @@ use App\Models\Submission;
 use App\Services\Ai\AiClient;
 use App\Services\Cloud\CloudStorageManager;
 use App\Services\Dspace\DspaceClient;
+use App\Services\Kliring\KliringClient;
 use App\Services\WhatsApp\WhatsAppSender;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +24,7 @@ class Dashboard extends Component
     #[Url]
     public string $year = '';
 
-    public function render(AiClient $ai, CloudStorageManager $cloud, WhatsAppSender $wa, DspaceClient $dspace)
+    public function render(AiClient $ai, CloudStorageManager $cloud, WhatsAppSender $wa, DspaceClient $dspace, KliringClient $kliring)
     {
         $base = Submission::query()->when($this->year, fn ($q) => $q->where('academic_year', $this->year));
         $counts = (clone $base)->select('status', DB::raw('COUNT(*) as total'))->groupBy('status')->pluck('total', 'status');
@@ -58,6 +59,7 @@ class Dashboard extends Component
                 ['Cloud '.($storage ? CloudStorageManager::PROVIDERS[$storage->name()] : ''), (bool) $storage?->isConnected(), 'cloud'],
                 ['WhatsApp', $wa->isConfigured(), 'chat'],
                 ['DSpace', $dspace->isConfigured(), 'library'],
+                ['Kliring', $kliring->isConfigured() && $kliring->hasSession(), 'check'],
             ],
         ]);
     }

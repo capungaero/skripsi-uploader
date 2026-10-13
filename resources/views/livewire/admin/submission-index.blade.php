@@ -54,7 +54,7 @@
                         <a href="{{ route('admin.submissions.show', $s) }}" wire:navigate class="font-medium text-brand-700 hover:underline">{{ $s->nim }}</a>
                         <p class="text-xs text-slate-600">{{ $s->nama }}</p>
                     </td>
-                    <td class="px-3 py-2 text-xs">{{ $s->faculty?->name }}<br><span class="text-slate-500">{{ $s->studyProgram?->name }}</span></td>
+                    <td class="px-3 py-2 text-xs">{{ $s->faculty?->name }}<br><span class="text-slate-500">{{ $s->programName() }}</span></td>
                     <td class="max-w-xs px-3 py-2 text-xs"><span class="line-clamp-2">{{ $s->judul }}</span></td>
                     <td class="px-3 py-2 tabular-nums">{{ $s->ai_score ?? '-' }}</td>
                     <td class="px-3 py-2">@include('livewire.admin.partials.status-badge', ['submission' => $s])</td>

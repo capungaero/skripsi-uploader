@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\Submission;
 use App\Services\ActivityLogger;
 use App\Services\Cloud\CloudException;
+use App\Services\Cloud\CloudStorage;
 use App\Services\Cloud\CloudStorageManager;
 use App\Services\Cloud\OAuthStorage;
 use App\Services\Settings;
@@ -12,7 +13,7 @@ use App\Services\Staging;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
-/** Moves an AI-accepted PDF from staging to "Koleksi Skripsi/{Fakultas}/{NIM}_{Nama}.pdf". */
+/** Moves an AI-accepted PDF from staging to "Koleksi Karya Ilmiah/{Fakultas}/{NIM}_{Nama}.pdf". */
 class PushToCloud implements ShouldQueue
 {
     use Queueable;
@@ -29,6 +30,16 @@ class PushToCloud implements ShouldQueue
     public function backoff(): array
     {
         return [60, 300, 900, 1800];
+    }
+
+    /** The file is already uploaded at this point, so a failing link lookup must not retry the upload. */
+    public static function linkFor(CloudStorage $storage, string $fileId): ?string
+    {
+        try {
+            return $storage->fileUrl($fileId);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     public function handle(CloudStorageManager $manager, Settings $settings): void
@@ -57,7 +68,7 @@ class PushToCloud implements ShouldQueue
         }
 
         $segments = [
-            Submission::safeFolderName((string) $settings->get('cloud.root_folder')) ?: 'Koleksi Skripsi',
+            Submission::safeFolderName((string) $settings->get('cloud.root_folder')) ?: 'Koleksi Karya Ilmiah',
             Submission::safeFolderName($submission->faculty?->name ?? 'Tanpa Fakultas'),
         ];
         $fileName = $submission->cloudFileName();
@@ -76,6 +87,7 @@ class PushToCloud implements ShouldQueue
             'cloud_provider' => $storage->name(),
             'cloud_file_id' => $fileId,
             'cloud_path' => implode('/', $segments).'/'.$fileName,
+            'cloud_url' => self::linkFor($storage, $fileId),
         ]);
         ActivityLogger::system('cloud.uploaded', $submission, ['provider' => $storage->name(), 'path' => $submission->cloud_path]);
 

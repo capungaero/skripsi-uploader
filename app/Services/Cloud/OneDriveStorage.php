@@ -108,6 +108,11 @@ class OneDriveStorage extends OAuthStorage
         return false; // edit access removed, but no true content lock exists on OneDrive
     }
 
+    public function fileUrl(string $fileId): ?string
+    {
+        return $this->check($this->http()->get(self::API."/items/{$fileId}", ['$select' => 'webUrl']), 'get file link')->json('webUrl');
+    }
+
     public function createShareLink(string $fileId): ?string
     {
         $response = $this->http()->post(self::API."/items/{$fileId}/createLink", ['type' => 'view', 'scope' => 'anonymous']);

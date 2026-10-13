@@ -87,6 +87,20 @@ class DropboxStorage extends OAuthStorage
         return $response->successful();
     }
 
+    public function fileUrl(string $fileId): ?string
+    {
+        $path = $this->check($this->http()->post(self::API.'/files/get_metadata', ['path' => $fileId]), 'get file link')
+            ->json('path_display');
+        if (! $path) {
+            return null;
+        }
+
+        // Opens the folder in the Dropbox web app with the file previewed.
+        $folder = implode('/', array_map('rawurlencode', array_filter(explode('/', dirname($path)), 'strlen')));
+
+        return 'https://www.dropbox.com/home'.($folder !== '' ? '/'.$folder : '').'?preview='.rawurlencode(basename($path));
+    }
+
     public function createShareLink(string $fileId): ?string
     {
         $response = $this->http()->post(self::API.'/sharing/create_shared_link_with_settings', [

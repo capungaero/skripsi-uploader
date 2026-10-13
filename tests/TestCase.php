@@ -52,7 +52,7 @@ abstract class TestCase extends BaseTestCase
     /** Valid request payload for the seeded form. */
     protected function uploadPayload(array $overrides = []): array
     {
-        $faculty = Faculty::with('programs')->where('code', 'FFARMASI')->first();
+        $faculty = Faculty::where('code', 'FFARMASI')->first();
 
         return array_merge([
             'nim' => '2011012345',
@@ -60,8 +60,8 @@ abstract class TestCase extends BaseTestCase
             'no_wa' => '081234567890',
             'email' => 'siti@student.unand.ac.id',
             'fakultas' => $faculty->id,
-            'prodi' => $faculty->programs->first()->id,
-            'tahun_akademik' => '2026/2027',
+            'prodi' => 'Farmasi',
+            'jenjang' => 'S1',
             'judul' => 'Uji Aktivitas Antioksidan Ekstrak Daun Gambir',
             'pembimbing' => 'Dr. A; Dr. B',
             'file' => $this->fakePdf(),
@@ -76,7 +76,7 @@ abstract class TestCase extends BaseTestCase
         }
         $name = 'test_'.Str::random(8).'.pdf';
         file_put_contents($this->stagingDir.DIRECTORY_SEPARATOR.$name, "%PDF-1.4\n%%EOF\n");
-        $faculty = Faculty::with('programs')->where('code', 'FFARMASI')->first();
+        $faculty = Faculty::where('code', 'FFARMASI')->first();
 
         return Submission::create(array_merge([
             'public_token' => Str::random(40),
@@ -85,9 +85,8 @@ abstract class TestCase extends BaseTestCase
             'nama' => 'Siti Aminah',
             'no_wa' => '081234567890',
             'faculty_id' => $faculty->id,
-            'study_program_id' => $faculty->programs->first()->id,
             'judul' => 'Uji Aktivitas Antioksidan Ekstrak Daun Gambir',
-            'extra' => ['pembimbing' => 'Dr. A; Dr. B', 'tahun_akademik' => '2026/2027'],
+            'extra' => ['pembimbing' => 'Dr. A; Dr. B', 'prodi' => 'Farmasi'],
             'status' => Submission::CHECKING,
             'original_filename' => 'skripsi.pdf',
             'file_size' => 16,

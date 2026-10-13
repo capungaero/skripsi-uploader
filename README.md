@@ -101,7 +101,7 @@ WantedBy=multi-user.target
 ```
 
 ```bash
-sudo systemctl enable --now skripsi-worker@ai skripsi-worker@cloud skripsi-worker@notify skripsi-worker@dspace
+sudo systemctl enable --now skripsi-worker@ai skripsi-worker@cloud skripsi-worker@notify skripsi-worker@dspace skripsi-worker@kliring
 ```
 
 Untuk menambah worker `ai` atau `cloud`, salin unit dengan nama instance berbeda, misalnya `skripsi-worker-ai2`.
@@ -138,7 +138,11 @@ Setelah setiap deploy, restart worker dengan `php artisan queue:restart`.
 6. **Field Form**:
    - Atur field wajib/opsional per tahun akademik.
    - Tahun berikutnya dibuat lewat **Salin ke tahun baru** lalu **Aktifkan**.
-7. **Pengguna Admin**:
+7. **Kliring** (approve otomatis "bebas skripsi" di kliringlib):
+   - Isi `KLIRING_USERNAME` dan `KLIRING_PASSWORD` di `.env`.
+   - Tekan **Sambungkan**, ketik kode verifikasi (CAPTCHA) yang tampil, lalu **Masuk**.
+   - Scheduler menjaga sesi tetap hidup. Jika sesi berakhir, approve kliring menunggu sampai disambungkan ulang.
+8. **Pengguna Admin**:
    - Buat akun *verifikator* untuk pustakawan. Verifikator hanya bisa approve dan tolak.
 
 ## Pengembangan lokal
@@ -148,7 +152,7 @@ composer install && npm install && npm run build
 php artisan migrate --seed
 php artisan db:seed --class=LocalDevSeeder   # admin@skripsi.test, password dari DEV_ADMIN_PASSWORD di .env
 php artisan serve
-php artisan queue:work --queue=ai,cloud,notify,dspace
+php artisan queue:work --queue=ai,cloud,notify,dspace,kliring
 php artisan test
 ```
 

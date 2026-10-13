@@ -113,6 +113,14 @@ class GoogleDriveStorage extends OAuthStorage
         return true;
     }
 
+    public function fileUrl(string $fileId): ?string
+    {
+        return $this->check($this->http()->get(self::API."/files/{$fileId}", [
+            'fields' => 'webViewLink',
+            'supportsAllDrives' => 'true',
+        ]), 'get file link')->json('webViewLink');
+    }
+
     public function createShareLink(string $fileId): ?string
     {
         $this->check($this->http()->post(self::API."/files/{$fileId}/permissions?supportsAllDrives=true", [

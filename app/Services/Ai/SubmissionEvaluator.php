@@ -124,7 +124,7 @@ class SubmissionEvaluator
         ))->implode("\n");
 
         $system = <<<TXT
-Anda adalah pemeriksa kelengkapan file skripsi untuk Perpustakaan Universitas Andalas.
+Anda adalah pemeriksa kelengkapan file Karya Ilmiah (skripsi, tesis, disertasi, atau tugas akhir) untuk Perpustakaan Universitas Andalas.
 Nilai dokumen HANYA berdasarkan kriteria di bawah. Untuk setiap kriteria beri skor 0-100
 (100 = jelas terpenuhi, 0 = jelas tidak terpenuhi) dan alasan singkat, spesifik, dalam bahasa Indonesia,
 yang menyebutkan nomor halaman bila relevan dan apa yang harus diperbaiki mahasiswa.

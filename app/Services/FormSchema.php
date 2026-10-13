@@ -39,12 +39,8 @@ class FormSchema
                 'pattern' => $f->pattern,
                 'max_length' => $f->max_length,
             ])->all() : [],
-            'faculties' => Faculty::where('is_active', true)->orderBy('sort')->with(['programs' => fn ($q) => $q->where('is_active', true)])
-                ->get()->map(fn (Faculty $f) => [
-                    'id' => $f->id,
-                    'name' => $f->name,
-                    'programs' => $f->programs->map(fn ($p) => ['id' => $p->id, 'name' => $p->name])->all(),
-                ])->all(),
+            'faculties' => Faculty::where('is_active', true)->orderBy('name')
+                ->get()->map(fn (Faculty $f) => ['id' => $f->id, 'name' => $f->name])->all(),
         ];
     }
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Login Admin · Skripsi Uploader</title>
+    <title>Login Admin · Karya Ilmiah Uploader</title>
     <link rel="icon" type="image/png" href="{{ asset('images/logo-unand.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -15,7 +15,7 @@
         <svg class="absolute right-0 bottom-0 h-20 w-44 text-white/10" viewBox="0 0 176 80" fill="currentColor" aria-hidden="true"><path d="M0 80 C40 20 70 70 110 30 S160 10 176 0 V80Z"/></svg>
         <x-brand light size="lg" class="relative mb-5"/>
         <p class="relative text-xs text-white/75">Panel admin</p>
-        <h1 class="relative text-xl font-semibold">Skripsi Uploader</h1>
+        <h1 class="relative text-xl font-semibold">Karya Ilmiah Uploader</h1>
     </div>
     <form method="POST" action="{{ route('admin.login') }}" class="card relative -mt-6 space-y-4 p-6">
         @csrf

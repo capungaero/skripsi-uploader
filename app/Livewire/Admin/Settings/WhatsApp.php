@@ -47,7 +47,7 @@ class WhatsApp extends SettingsForm
     {
         $this->validate(['testPhone' => ['required', 'regex:/^(\+?62|0)8[0-9]{7,12}$/']], ['testPhone.regex' => 'Nomor tidak valid.']);
         try {
-            $response = $sender->send($this->testPhone, 'Tes notifikasi Skripsi Uploader Perpustakaan Unand.');
+            $response = $sender->send($this->testPhone, 'Tes notifikasi Karya Ilmiah Uploader Perpustakaan Unand.');
             $this->testResult = 'HTTP '.$response->status().': '.mb_substr($response->body(), 0, 300);
         } catch (\Throwable $e) {
             $this->testResult = 'Gagal: '.mb_substr($e->getMessage(), 0, 300);

@@ -53,7 +53,7 @@ class MetadataMapper
             'nama' => $submission->nama,
             'judul' => $submission->judul,
             'fakultas' => $submission->faculty?->name,
-            'prodi' => $submission->studyProgram?->name,
+            'prodi' => $submission->programName(),
         ]);
     }
 }

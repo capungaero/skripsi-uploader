@@ -1,7 +1,12 @@
 <?php
 
+use App\Jobs\ApproveInKliring;
+use App\Jobs\PushToCloud;
 use App\Models\Submission;
 use App\Models\User;
+use App\Services\ActivityLogger;
+use App\Services\Cloud\CloudStorageManager;
+use App\Services\Kliring\KliringClient;
 use App\Services\Staging;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -45,4 +50,32 @@ Artisan::command('app:cleanup-staging', function () {
     $this->info("Removed {$removed} staging file(s).");
 })->purpose('Delete staging PDFs that are no longer needed');
 
+Artisan::command('app:backfill-cloud-links', function (CloudStorageManager $manager) {
+    $filled = 0;
+    foreach (Submission::whereNotNull('cloud_file_id')->whereNull('cloud_url')->get() as $submission) {
+        $url = PushToCloud::linkFor($manager->driver($submission->cloud_provider), $submission->cloud_file_id);
+        if ($url) {
+            $submission->forceFill(['cloud_url' => $url])->save();
+            $filled++;
+        }
+    }
+    $this->info("Filled {$filled} cloud link(s).");
+})->purpose('Fill the clickable cloud link of files uploaded before links were stored');
+
+Artisan::command('app:kliring-keepalive', function (KliringClient $kliring) {
+    if ($kliring->isConfigured() && $kliring->hasSession() && ! $kliring->ping()) {
+        ActivityLogger::system('kliring.session_expired');
+        $this->warn('Sesi kliring berakhir; sambungkan ulang dari dashboard.');
+    }
+})->purpose('Keep the kliringlib login session from idling out');
+
+Artisan::command('app:kliring-retry', function (KliringClient $kliring) {
+    if (! $kliring->isConfigured() || ! $kliring->hasSession()) {
+        return;
+    }
+    $this->info('Queued '.ApproveInKliring::dispatchWaiting().' kliring approval(s).');
+})->purpose('Retry kliring approvals waiting for a session or for the student request');
+
 Schedule::command('app:cleanup-staging')->hourly();
+Schedule::command('app:kliring-keepalive')->everyTenMinutes();
+Schedule::command('app:kliring-retry')->hourly();

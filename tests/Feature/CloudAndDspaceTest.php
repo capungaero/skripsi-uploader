@@ -43,6 +43,7 @@ class CloudAndDspaceTest extends TestCase
             return match (true) {
                 str_contains($url, 'oauth2.googleapis.com/token') => Http::response(['access_token' => 'at']),
                 str_contains($url, '/upload/drive/v3/files?') => Http::response('', 200, ['Location' => 'https://upload.test/session']),
+                $r->method() === 'GET' && str_contains($url, '/drive/v3/files/file-123') => Http::response(['webViewLink' => 'https://drive.google.com/file/d/file-123/view']),
                 $r->method() === 'GET' && str_contains($url, '/drive/v3/files?') => Http::response(['files' => []]),
                 $r->method() === 'POST' && str_contains($url, '/drive/v3/files?') => Http::response(['id' => ++$created === 1 ? 'root-folder' : 'faculty-folder']),
                 str_contains($url, 'upload.test/session') => Http::response(['id' => 'file-123']),
@@ -55,11 +56,20 @@ class CloudAndDspaceTest extends TestCase
         $submission->refresh();
         $this->assertSame('gdrive', $submission->cloud_provider);
         $this->assertSame('file-123', $submission->cloud_file_id);
-        $this->assertSame('Koleksi Skripsi/Fakultas Farmasi/2011012345_Siti_Aminah.pdf', $submission->cloud_path);
+        $this->assertSame('Koleksi Karya Ilmiah/Fakultas Farmasi/2011012345_Siti Aminah.pdf', $submission->cloud_path);
+        $this->assertSame('https://drive.google.com/file/d/file-123/view', $submission->cloud_url);
         $this->assertNull($submission->staging_path);
         $this->assertSame(2, CloudFolder::count());
         Http::assertSent(fn (Request $r) => $r->url() === 'https://upload.test/session'
             && $r->header('Content-Range')[0] === 'bytes 0-14/15');
+    }
+
+    public function test_cloud_file_name_is_nim_underscore_full_name(): void
+    {
+        $submission = $this->stagedSubmission(['nim' => '2011012345', 'nama' => '  Siti   Aminah, S.Farm ']);
+
+        $this->assertSame('2011012345_Siti Aminah, S.Farm.pdf', $submission->cloudFileName());
+        $this->assertSame('2011012345_AniBudi.pdf', $this->stagedSubmission(['nama' => 'Ani/Budi:'])->cloudFileName());
     }
 
     public function test_push_waits_in_staging_when_no_provider_is_connected(): void

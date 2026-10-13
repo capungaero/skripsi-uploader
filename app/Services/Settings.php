@@ -21,12 +21,13 @@ class Settings
         'dropbox.app_secret', 'dropbox.refresh_token',
         'wa.headers',
         'dspace.password',
+        'kliring.session',
     ];
 
     public const DEFAULTS = [
-        'appearance.title' => 'Unggah Skripsi — Perpustakaan Universitas Andalas',
-        'appearance.description' => 'Layanan unggah mandiri file skripsi untuk koleksi repositori Universitas Andalas.',
-        'appearance.instructions' => "1. Siapkan file skripsi lengkap dalam satu PDF (maks. 50 MB).\n2. Pastikan halaman pengesahan sudah ditandatangani pembimbing.\n3. Isi data dengan benar, lalu unggah. Status pengecekan tampil otomatis.",
+        'appearance.title' => 'Unggah Karya Ilmiah — Perpustakaan Universitas Andalas',
+        'appearance.description' => 'Layanan unggah mandiri file Karya Ilmiah untuk koleksi repositori Universitas Andalas.',
+        'appearance.instructions' => "1. Siapkan file Karya Ilmiah lengkap dalam satu PDF (maks. 50 MB).\n2. Pastikan halaman pengesahan sudah ditandatangani pembimbing.\n3. Isi data dengan benar, lalu unggah. Status pengecekan tampil otomatis.",
         'appearance.banner_path' => null,
 
         'upload.max_mb' => 50,
@@ -43,7 +44,7 @@ class Settings
         'ai.max_tokens' => 8000,
 
         'cloud.provider' => 'none', // none, gdrive, onedrive, dropbox
-        'cloud.root_folder' => 'Koleksi Skripsi',
+        'cloud.root_folder' => 'Koleksi Karya Ilmiah',
         'cloud.share_link' => false,
         'gdrive.client_id' => null,
         'gdrive.client_secret' => null,
@@ -63,11 +64,11 @@ class Settings
         'wa.headers' => '{"Authorization": "TOKEN"}',
         'wa.body_format' => 'form', // json or form
         'wa.body_template' => '{"target": "{phone}", "message": "{message}"}',
-        'wa.tpl.ai_rejected' => "Halo {nama} ({nim}),\n\nFile skripsi Anda *DITOLAK* oleh pengecekan otomatis karena:\n{alasan}\n\nSilakan perbaiki file lalu unggah ulang di {link}. Sisa percobaan: {sisa_percobaan}.\n\n— Perpustakaan Universitas Andalas",
-        'wa.tpl.ai_accepted' => "Halo {nama} ({nim}),\n\nFile skripsi Anda *DITERIMA* oleh pengecekan otomatis dan masuk antrean verifikasi manual oleh pustakawan. Pantau status di {link}.\n\n— Perpustakaan Universitas Andalas",
-        'wa.tpl.admin_approved' => "Halo {nama} ({nim}),\n\nSkripsi Anda telah *DIVERIFIKASI* oleh pustakawan dan akan disimpan ke repositori.\n{catatan}\n\n— Perpustakaan Universitas Andalas",
-        'wa.tpl.admin_rejected' => "Halo {nama} ({nim}),\n\nSkripsi Anda *DITOLAK* pada verifikasi manual.\nCatatan pustakawan: {catatan}\n\nSilakan perbaiki lalu unggah ulang di {link}. Sisa percobaan: {sisa_percobaan}.\n\n— Perpustakaan Universitas Andalas",
-        'wa.tpl.deposited' => "Halo {nama} ({nim}),\n\nSkripsi Anda sudah tersimpan di repositori Universitas Andalas: {handle}\n\n— Perpustakaan Universitas Andalas",
+        'wa.tpl.ai_rejected' => "Halo {nama} ({nim}),\n\nFile Karya Ilmiah Anda *DITOLAK* oleh pengecekan otomatis karena:\n{alasan}\n\nSilakan perbaiki file lalu unggah ulang di {link}. Sisa percobaan: {sisa_percobaan}.\n\n— Perpustakaan Universitas Andalas",
+        'wa.tpl.ai_accepted' => "Halo {nama} ({nim}),\n\nFile Karya Ilmiah Anda *DITERIMA* oleh pengecekan otomatis dan masuk antrean verifikasi manual oleh pustakawan. Pantau status di {link}.\n\n— Perpustakaan Universitas Andalas",
+        'wa.tpl.admin_approved' => "Halo {nama} ({nim}),\n\nKarya Ilmiah Anda telah *DIVERIFIKASI* oleh pustakawan dan akan disimpan ke repositori.\n{catatan}\n\nUntuk surat bebas pustaka, silakan ajukan *permohonan kliring* di https://kliringlib.unand.ac.id dengan akun perpustakaan Anda. Permohonan akan disetujui otomatis.\n\n— Perpustakaan Universitas Andalas",
+        'wa.tpl.admin_rejected' => "Halo {nama} ({nim}),\n\nKarya Ilmiah Anda *DITOLAK* pada verifikasi manual.\nCatatan pustakawan: {catatan}\n\nSilakan perbaiki lalu unggah ulang di {link}. Sisa percobaan: {sisa_percobaan}.\n\n— Perpustakaan Universitas Andalas",
+        'wa.tpl.deposited' => "Halo {nama} ({nim}),\n\nKarya Ilmiah Anda sudah tersimpan di repositori Universitas Andalas: {handle}\n\n— Perpustakaan Universitas Andalas",
 
         'dspace.enabled' => false,
         'dspace.base_url' => null, // e.g. https://repository.unand.ac.id/server

@@ -30,7 +30,7 @@ class Faculties extends Component
 
     private function load(): void
     {
-        $this->rows = Faculty::orderBy('sort')->get()->mapWithKeys(fn (Faculty $f) => [$f->id => [
+        $this->rows = Faculty::orderBy('name')->get()->mapWithKeys(fn (Faculty $f) => [$f->id => [
             'code' => $f->code, 'name' => $f->name, 'dspace_collection_uuid' => $f->dspace_collection_uuid,
             'is_active' => $f->is_active, 'sort' => $f->sort,
         ]])->all();

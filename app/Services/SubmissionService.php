@@ -2,12 +2,14 @@
 
 namespace App\Services;
 
+use App\Jobs\ApproveInKliring;
 use App\Jobs\CheckSubmissionPdf;
 use App\Jobs\DepositToDspace;
 use App\Jobs\FinalizeApproved;
 use App\Jobs\RemoveFromCloud;
 use App\Models\Submission;
 use App\Models\User;
+use App\Services\Kliring\KliringClient;
 use Illuminate\Validation\ValidationException;
 
 /** Upload eligibility, attempt limits and the admin verification transitions. */
@@ -74,7 +76,24 @@ class SubmissionService
         ActivityLogger::admin('submission.approved', $submission, ['note' => $note]);
 
         FinalizeApproved::dispatch($submission->id);
+        if (app(KliringClient::class)->isConfigured()) {
+            $submission->update(['kliring_status' => 'queued', 'kliring_error' => null]);
+            ApproveInKliring::dispatch($submission->id);
+        }
         app(SubmissionNotifier::class)->notify($submission, 'admin_approved');
+    }
+
+    /** Try the kliring clearance approval again (after a failure or a reconnect). */
+    public function retryKliring(Submission $submission): void
+    {
+        $this->assertStatus($submission, ApproveInKliring::VERIFIED);
+        if (! app(KliringClient::class)->isConfigured()) {
+            throw ValidationException::withMessages(['status' => 'Akun kliring belum diatur (KLIRING_USERNAME/KLIRING_PASSWORD di .env).']);
+        }
+
+        $submission->update(['kliring_status' => 'queued', 'kliring_error' => null]);
+        ActivityLogger::admin('kliring.retry_requested', $submission);
+        ApproveInKliring::dispatch($submission->id);
     }
 
     public function reject(Submission $submission, User $admin, string $note): void

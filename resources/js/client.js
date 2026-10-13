@@ -47,11 +47,6 @@ Alpine.data('uploader', (schema) => ({
         }
     },
 
-    get programs() {
-        const faculty = this.schema.faculties.find((f) => String(f.id) === String(this.values.fakultas));
-        return faculty ? faculty.programs : [];
-    },
-
     fieldId(key) {
         return 'f_' + key;
     },
@@ -115,7 +110,7 @@ Alpine.data('uploader', (schema) => ({
     async submit() {
         this.formError = null;
         const valid = this.schema.fields.map((f) => this.validateField(f)).every(Boolean);
-        if (!this.file) this.fileError = this.fileError || 'Pilih file PDF skripsi.';
+        if (!this.file) this.fileError = this.fileError || 'Pilih file PDF Karya Ilmiah.';
         if (!valid || !this.file) {
             this.formError = 'Periksa kembali isian yang ditandai.';
             return;

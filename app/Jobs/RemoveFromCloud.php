@@ -35,6 +35,6 @@ class RemoveFromCloud implements ShouldQueue
         $manager->driver($submission->cloud_provider)->delete($submission->cloud_file_id);
 
         ActivityLogger::system('cloud.removed', $submission, ['path' => $submission->cloud_path]);
-        $submission->update(['cloud_file_id' => null, 'share_url' => null, 'cloud_locked' => false]);
+        $submission->update(['cloud_file_id' => null, 'cloud_url' => null, 'share_url' => null, 'cloud_locked' => false]);
     }
 }

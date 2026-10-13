@@ -34,6 +34,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::livewire('settings/cloud', Admin\Settings\CloudStorage::class)->name('settings.cloud');
             Route::livewire('settings/whatsapp', Admin\Settings\WhatsApp::class)->name('settings.whatsapp');
             Route::livewire('settings/dspace', Admin\Settings\Dspace::class)->name('settings.dspace');
+            Route::livewire('settings/kliring', Admin\Settings\Kliring::class)->name('settings.kliring');
             Route::livewire('users', Admin\Users::class)->name('users');
             Route::livewire('logs', Admin\ActivityLogs::class)->name('logs');
 

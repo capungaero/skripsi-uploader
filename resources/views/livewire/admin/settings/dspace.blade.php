@@ -21,7 +21,7 @@
         <div>
             <label class="label">Pemetaan field form → metadata DSpace (<code>key_form = dc.field</code>)</label>
             <textarea wire:model="mapText" rows="7" class="field-input font-mono text-xs"></textarea>
-            <p class="mt-1 text-xs text-slate-500">Key tersedia: nim, nama, judul, fakultas, prodi, dan semua key field tambahan (mis. pembimbing, abstrak, tahun_akademik, email). Nilai pembimbing dipisah ";" menjadi beberapa nilai.</p>
+            <p class="mt-1 text-xs text-slate-500">Key tersedia: nim, nama, judul, fakultas, prodi, dan semua key field tambahan (mis. pembimbing, abstrak, jenjang, email). Nilai pembimbing dipisah ";" menjadi beberapa nilai.</p>
         </div>
         <div>
             <label class="label">Metadata tetap (<code>dc.field = nilai</code>)</label>

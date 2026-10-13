@@ -37,7 +37,7 @@ class AiCriteriaSeeder extends Seeder
             [
                 'key' => 'struktur_bab',
                 'label' => 'Struktur bab lengkap',
-                'instruction' => 'Isi skripsi harus lengkap dari BAB I (Pendahuluan) sampai bab penutup (Kesimpulan dan Saran), serta memiliki DAFTAR PUSTAKA. Sebutkan bab yang tidak ditemukan.',
+                'instruction' => 'Isi Karya Ilmiah harus lengkap dari BAB I (Pendahuluan) sampai bab penutup (Kesimpulan dan Saran), serta memiliki DAFTAR PUSTAKA. Sebutkan bab yang tidak ditemukan.',
                 'page_keywords' => ['BAB I', 'BAB II', 'BAB III', 'BAB IV', 'BAB V', 'BAB VI', 'KESIMPULAN', 'DAFTAR PUSTAKA'],
                 'needs_image' => false,
                 'min_score' => 70,

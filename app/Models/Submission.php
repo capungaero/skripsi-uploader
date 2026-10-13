@@ -53,6 +53,15 @@ class Submission extends Model
         self::DEPOSIT_FAILED => 'Gagal setor DSpace',
     ];
 
+    /** Approval of the student's library clearance ("bebas skripsi") on kliringlib. */
+    public const KLIRING_LABELS = [
+        'queued' => 'Antre',
+        'waiting_login' => 'Menunggu sesi kliring disambungkan',
+        'waiting_request' => 'Menunggu mahasiswa mengajukan permohonan kliring',
+        'done' => 'Bebas (sudah diterima di kliring)',
+        'failed' => 'Gagal',
+    ];
+
     protected $guarded = ['id'];
 
     protected $hidden = ['staging_path'];
@@ -66,6 +75,7 @@ class Submission extends Model
             'cloud_locked' => 'boolean',
             'verified_at' => 'datetime',
             'deposited_at' => 'datetime',
+            'kliring_at' => 'datetime',
         ];
     }
 
@@ -115,10 +125,21 @@ class Submission extends Model
         return self::ADMIN_LABELS[$this->status] ?? $this->status;
     }
 
-    /** "{NIM}_{Nama}.pdf" */
+    /** Programme as the student typed it; older uploads picked one from the master list. */
+    public function programName(): ?string
+    {
+        return $this->studyProgram?->name ?? ($this->extra['prodi'] ?? null);
+    }
+
+    public function kliringLabel(): ?string
+    {
+        return $this->kliring_status ? (self::KLIRING_LABELS[$this->kliring_status] ?? $this->kliring_status) : null;
+    }
+
+    /** Standard file name: "{NIM}_{Nama Lengkap}.pdf" (spaces in the name are kept). */
     public function cloudFileName(): string
     {
-        return self::safeName($this->nim).'_'.self::safeName($this->nama).'.pdf';
+        return self::safeFolderName($this->nim).'_'.self::safeFolderName($this->nama).'.pdf';
     }
 
     /** Strip characters that Drive/OneDrive/Dropbox reject and collapse whitespace to "_". */

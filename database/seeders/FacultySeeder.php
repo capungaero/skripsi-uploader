@@ -27,6 +27,7 @@ class FacultySeeder extends Seeder
         'FKEP' => ['Fakultas Keperawatan', ['Keperawatan']],
         'FKG' => ['Fakultas Kedokteran Gigi', ['Pendidikan Dokter Gigi']],
         'FTI' => ['Fakultas Teknologi Informasi', ['Sistem Informasi', 'Teknik Komputer', 'Informatika']],
+        'SPS' => ['Sekolah Pascasarjana', []],
     ];
 
     public function run(): void

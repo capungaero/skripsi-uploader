@@ -68,7 +68,7 @@ class SubmissionIndex extends Component
     {
         return view('livewire.admin.submission-index', [
             'rows' => SubmissionQuery::filtered($this->filters())->with(['faculty', 'studyProgram'])->latest('id')->paginate(25),
-            'faculties' => Faculty::orderBy('sort')->get(['id', 'name']),
+            'faculties' => Faculty::orderBy('name')->get(['id', 'name']),
             'years' => Submission::distinct()->orderByDesc('academic_year')->pluck('academic_year'),
             'statuses' => ['queue' => '— Antrean verifikasi', 'rejected' => '— Semua ditolak', 'accepted' => '— Semua diterima'] + Submission::ADMIN_LABELS,
             'exportUrl' => route('admin.export', array_filter($this->filters())),

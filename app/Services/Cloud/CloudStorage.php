@@ -12,7 +12,7 @@ interface CloudStorage
     /**
      * Make sure the nested folder exists and return its provider reference (id or path).
      *
-     * @param  string[]  $segments  e.g. ["Koleksi Skripsi", "Fakultas Hukum"]
+     * @param  string[]  $segments  e.g. ["Koleksi Karya Ilmiah", "Fakultas Hukum"]
      */
     public function ensureFolder(array $segments): string;
 
@@ -21,6 +21,9 @@ interface CloudStorage
 
     /** Lock the file against edits. Returns false when the provider/account cannot do it. */
     public function setReadOnly(string $fileId): bool;
+
+    /** Link that opens the file in the provider's web UI for the connected account (no public access is granted). */
+    public function fileUrl(string $fileId): ?string;
 
     public function createShareLink(string $fileId): ?string;
 

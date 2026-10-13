@@ -76,11 +76,11 @@ class PublicSubmissionController extends Controller
             $taken = Submission::where('file_hash', $hash)->where('nim', '!=', $nim)
                 ->whereIn('status', Submission::ACTIVE)->exists();
             if ($taken) {
-                $message = 'File PDF ini sudah pernah diunggah dengan NIM lain. Satu file skripsi hanya untuk satu NIM.';
+                $message = 'File PDF ini sudah pernah diunggah dengan NIM lain. Satu file Karya Ilmiah hanya untuk satu NIM.';
 
                 return response()->json(['message' => $message, 'errors' => ['file' => [$message]]], 422);
             }
-            $original = mb_substr(Submission::safeFolderName($file->getClientOriginalName()), 0, 200) ?: 'skripsi.pdf';
+            $original = mb_substr(Submission::safeFolderName($file->getClientOriginalName()), 0, 200) ?: 'karya-ilmiah.pdf';
 
             $submission = Submission::create([
                 'public_token' => Str::random(40),
@@ -91,8 +91,7 @@ class PublicSubmissionController extends Controller
                 'no_wa' => trim($validated['no_wa']),
                 'judul' => trim(preg_replace('/\s+/u', ' ', $validated['judul'])),
                 'faculty_id' => $validated['fakultas'],
-                'study_program_id' => $validated['prodi'],
-                'extra' => collect($validated)->except(array_merge(FormField::COLUMN_KEYS, ['file', 'fakultas', 'prodi']))
+                'extra' => collect($validated)->except(array_merge(FormField::COLUMN_KEYS, ['file', 'fakultas']))
                     ->filter(fn ($v) => $v !== null && $v !== '')->all(),
                 'status' => Submission::CHECKING,
                 'original_filename' => $original,

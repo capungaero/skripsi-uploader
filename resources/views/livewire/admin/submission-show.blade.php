@@ -26,7 +26,7 @@
                 <h2 class="mb-3 font-semibold">Data mahasiswa</h2>
                 <dl class="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
                     <div><dt class="text-xs text-slate-500">Fakultas</dt><dd>{{ $s->faculty?->name }}</dd></div>
-                    <div><dt class="text-xs text-slate-500">Program studi</dt><dd>{{ $s->studyProgram?->name }}</dd></div>
+                    <div><dt class="text-xs text-slate-500">Program studi</dt><dd>{{ $s->programName() }}</dd></div>
                     <div><dt class="text-xs text-slate-500">No. WhatsApp</dt><dd>{{ $s->no_wa }}</dd></div>
                     <div><dt class="text-xs text-slate-500">Periode unggah</dt><dd>{{ $s->academic_year }}</dd></div>
                     <div class="sm:col-span-2"><dt class="text-xs text-slate-500">Judul</dt><dd class="font-medium">{{ $s->judul }}</dd></div>
@@ -38,7 +38,8 @@
                     <div class="sm:col-span-2"><dt class="text-xs text-slate-500">Cloud</dt>
                         <dd>
                             @if ($s->cloud_file_id)
-                                {{ \App\Services\Cloud\CloudStorageManager::PROVIDERS[$s->cloud_provider] ?? $s->cloud_provider }}: {{ $s->cloud_path }}
+                                {{ \App\Services\Cloud\CloudStorageManager::PROVIDERS[$s->cloud_provider] ?? $s->cloud_provider }}:
+                                @if ($s->cloud_url)<a href="{{ $s->cloud_url }}" target="_blank" rel="noopener" class="text-brand-700 underline">{{ $s->cloud_path }}</a>@else{{ $s->cloud_path }}@endif
                                 {{ $s->cloud_locked ? '· read-only' : '' }}
                                 @if ($s->share_url) · <a href="{{ $s->share_url }}" target="_blank" rel="noopener" class="text-brand-700 underline">link share</a>@endif
                             @elseif (\App\Services\Staging::exists($s))
@@ -49,6 +50,17 @@
                             @endif
                         </dd>
                     </div>
+                    @if ($s->kliring_status)
+                        <div class="sm:col-span-2"><dt class="text-xs text-slate-500">Kliring perpustakaan</dt>
+                            <dd>
+                                {{ $s->kliringLabel() }}{{ $s->kliring_at ? ' · '.$s->kliring_at->format('d/m/Y H:i') : '' }}
+                                @if ($s->kliring_error && $s->kliring_status !== 'done')<span class="text-xs text-slate-500">— {{ $s->kliring_error }}</span>@endif
+                                @if (in_array($s->kliring_status, ['failed', 'waiting_login', 'waiting_request']))
+                                    <button wire:click="retryKliring" class="ml-2 text-xs text-brand-700 underline">Coba lagi</button>
+                                @endif
+                            </dd>
+                        </div>
+                    @endif
                     @if ($s->dspace_item_uuid)
                         <div class="sm:col-span-2"><dt class="text-xs text-slate-500">DSpace</dt>
                             <dd>{{ $s->dspace_handle ?? $s->dspace_item_uuid }} @if ($handleUrl)· <a href="{{ $handleUrl }}" target="_blank" rel="noopener" class="text-brand-700 underline">buka</a>@endif</dd>

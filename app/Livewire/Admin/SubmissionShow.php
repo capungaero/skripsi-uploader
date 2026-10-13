@@ -50,6 +50,11 @@ class SubmissionShow extends Component
         $this->run(fn () => $service->deposit($this->submission), 'Masuk antrean setor ke DSpace.');
     }
 
+    public function retryKliring(SubmissionService $service): void
+    {
+        $this->run(fn () => $service->retryKliring($this->submission), 'Approve kliring dijadwalkan ulang.');
+    }
+
     public function recheck(SubmissionService $service): void
     {
         $this->run(fn () => $service->recheck($this->submission), 'Pengecekan AI dijalankan ulang.');
@@ -87,7 +92,7 @@ class SubmissionShow extends Component
 
         return view('livewire.admin.submission-show', [
             's' => $this->submission,
-            'extra' => collect($this->submission->extra ?? [])->mapWithKeys(fn ($v, $k) => [$labels[$k] ?? $k => $v]),
+            'extra' => collect($this->submission->extra ?? [])->except('prodi')->mapWithKeys(fn ($v, $k) => [$labels[$k] ?? $k => $v]),
             'remaining' => $service->remainingAttempts($this->submission->nim),
             'maxAttempts' => $service->maxAttempts(),
             'history' => Submission::forNim($this->submission->nim)->where('id', '!=', $this->submission->id)->latest('id')->get(),

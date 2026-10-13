@@ -18,9 +18,9 @@ class ExportController extends Controller
         $query = SubmissionQuery::filtered($filters)->with(['faculty', 'studyProgram', 'verifier']);
         ActivityLogger::admin('submission.exported', null, ['filters' => $filters]);
 
-        $columns = ['NIM', 'Nama', 'Fakultas', 'Program Studi', 'Tahun Akademik', 'Judul', 'No. WA', 'Status',
+        $columns = ['NIM', 'Nama', 'Email Student', 'Fakultas', 'Program Studi', 'Jenjang', 'Periode Unggah', 'Judul', 'No. WA', 'Status',
             'Skor AI', 'Alasan Penolakan', 'Catatan Admin', 'Diverifikasi oleh', 'Tanggal Unggah', 'Path Cloud',
-            'Link Share', 'Handle DSpace'];
+            'Link Cloud', 'Link Share', 'Handle DSpace'];
 
         return response()->streamDownload(function () use ($query, $columns, $dspace) {
             $out = fopen('php://output', 'w');
@@ -30,16 +30,16 @@ class ExportController extends Controller
                 foreach ($rows as $s) {
                     /** @var Submission $s */
                     fputcsv($out, array_map([self::class, 'cell'], [
-                        $s->nim, $s->nama, $s->faculty?->name, $s->studyProgram?->name,
-                        $s->extra['tahun_akademik'] ?? $s->academic_year, $s->judul, $s->no_wa,
+                        $s->nim, $s->nama, $s->extra['email'] ?? null, $s->faculty?->name, $s->programName(), $s->extra['jenjang'] ?? null,
+                        $s->academic_year, $s->judul, $s->no_wa,
                         $s->adminStatusLabel(), $s->ai_score, implode(' | ', $s->rejection_reasons ?? []),
                         $s->admin_note, $s->verifier?->name, $s->created_at->format('Y-m-d H:i'),
-                        $s->cloud_path, $s->share_url, $dspace->handleUrl($s->dspace_handle),
+                        $s->cloud_path, $s->cloud_url, $s->share_url, $dspace->handleUrl($s->dspace_handle),
                     ]));
                 }
             });
             fclose($out);
-        }, 'skripsi_'.now()->format('Ymd_His').'.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
+        }, 'karya_ilmiah_'.now()->format('Ymd_His').'.csv', ['Content-Type' => 'text/csv; charset=UTF-8']);
     }
 
     /** Neutralise spreadsheet formula injection (=, +, -, @ at the start of a cell). */

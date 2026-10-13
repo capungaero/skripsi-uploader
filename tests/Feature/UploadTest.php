@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Jobs\CheckSubmissionPdf;
 use App\Models\ActivityLog;
 use App\Models\FormConfig;
-use App\Models\StudyProgram;
 use App\Models\Submission;
 use App\Services\SubmissionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -27,7 +26,7 @@ class UploadTest extends TestCase
 
     public function test_client_page_renders_dynamic_form(): void
     {
-        $this->get('/')->assertOk()->assertSee('Unggah Skripsi')->assertSee('Judul Skripsi', false);
+        $this->get('/')->assertOk()->assertSee('Unggah Karya Ilmiah')->assertSee('Judul Karya Ilmiah', false)->assertSee('Jenjang Studi', false);
     }
 
     public function test_valid_upload_is_staged_logged_and_queued_for_ai(): void
@@ -70,12 +69,51 @@ class UploadTest extends TestCase
         $this->postJson('/api/submissions', $this->uploadPayload(['email' => '']))->assertCreated();
     }
 
-    public function test_programme_must_belong_to_selected_faculty(): void
+    public function test_programme_is_free_text_stored_with_the_submission(): void
     {
-        $otherProgram = StudyProgram::whereHas('faculty', fn ($q) => $q->where('code', 'FH'))->first();
-
-        $this->postJson('/api/submissions', $this->uploadPayload(['prodi' => $otherProgram->id]))
+        $this->postJson('/api/submissions', $this->uploadPayload(['prodi' => '']))
             ->assertStatus(422)->assertJsonValidationErrors('prodi');
+
+        $this->postJson('/api/submissions', $this->uploadPayload(['prodi' => 'Magister Ilmu Gizi (Kekhususan Klinik)']))->assertCreated();
+        $submission = Submission::latest('id')->first();
+        $this->assertSame('Magister Ilmu Gizi (Kekhususan Klinik)', $submission->programName());
+        $this->assertNull($submission->study_program_id);
+    }
+
+    public function test_student_email_must_be_a_student_unand_mailbox(): void
+    {
+        foreach (['siti@gmail.com', 'siti@unand.ac.id', 'siti@student.unand.ac.id.evil.com'] as $bad) {
+            $this->postJson('/api/submissions', $this->uploadPayload(['email' => $bad]))
+                ->assertStatus(422)->assertJsonValidationErrors('email');
+        }
+        $this->postJson('/api/submissions', $this->uploadPayload(['email' => 'siti.aminah@student.unand.ac.id']))->assertCreated();
+    }
+
+    public function test_form_lists_faculties_alphabetically_with_pascasarjana_and_no_year_field(): void
+    {
+        $form = $this->getJson('/api/form')->assertOk()->json();
+        $names = array_column($form['faculties'], 'name');
+
+        $this->assertContains('Sekolah Pascasarjana', $names);
+        $sorted = $names;
+        sort($sorted, SORT_NATURAL | SORT_FLAG_CASE);
+        $this->assertSame($sorted, $names);
+        $keys = array_column($form['fields'], 'key');
+        $this->assertNotContains('tahun_akademik', $keys);
+        $this->assertLessThan(array_search('no_wa', $keys), array_search('email', $keys));
+        $this->assertSame('text', collect($form['fields'])->firstWhere('key', 'prodi')['type']);
+        $this->assertContains('Spesialis', collect($form['fields'])->firstWhere('key', 'jenjang')['options']);
+    }
+
+    public function test_jenjang_is_required_from_the_fixed_options_and_stored(): void
+    {
+        $this->postJson('/api/submissions', $this->uploadPayload(['jenjang' => '']))
+            ->assertStatus(422)->assertJsonValidationErrors('jenjang');
+        $this->postJson('/api/submissions', $this->uploadPayload(['jenjang' => 'S4']))
+            ->assertStatus(422)->assertJsonValidationErrors('jenjang');
+
+        $this->postJson('/api/submissions', $this->uploadPayload(['jenjang' => 'Profesi']))->assertCreated();
+        $this->assertSame('Profesi', Submission::latest('id')->first()->extra['jenjang']);
     }
 
     public function test_duplicate_nim_is_blocked_while_a_submission_is_active(): void
