@@ -14,8 +14,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->redirectGuestsTo('/admin/login');
         $middleware->redirectUsersTo('/admin');
-        // Behind the Nginx that also fronts DSpace.
-        $middleware->trustProxies(at: '127.0.0.1');
+        // Behind the Nginx that also fronts DSpace. In Docker the proxy connects from the compose
+        // network, so TRUSTED_PROXIES (comma list, or "*" when only the proxy can reach this container)
+        // overrides the default.
+        $middleware->trustProxies(at: env('TRUSTED_PROXIES', '127.0.0.1,172.28.0.1'));
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

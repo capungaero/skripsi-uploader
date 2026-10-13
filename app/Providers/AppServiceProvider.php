@@ -8,6 +8,7 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -20,6 +21,13 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Behind a reverse proxy that mounts the app under a subpath (e.g. /skripsi_upload) and
+        // strips that prefix before forwarding, the request itself looks like it's at "/" — so
+        // url()/asset() must be forced to APP_URL instead of being inferred from the request.
+        if ($url = config('app.url')) {
+            URL::forceRootUrl($url);
+        }
+
         Gate::define('superadmin', fn (User $user) => $user->isSuperadmin());
 
         RateLimiter::for('nim-check', fn (Request $r) => Limit::perMinute(30)->by($r->ip()));
