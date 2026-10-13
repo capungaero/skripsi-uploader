@@ -39,7 +39,8 @@
                         <dd>
                             @if ($s->cloud_file_id)
                                 {{ \App\Services\Cloud\CloudStorageManager::PROVIDERS[$s->cloud_provider] ?? $s->cloud_provider }}:
-                                @if ($s->cloud_url)<a href="{{ $s->cloud_url }}" target="_blank" rel="noopener" class="text-brand-700 underline">{{ $s->cloud_path }}</a>@else{{ $s->cloud_path }}@endif
+                                @php $fileLink = $s->cloud_url ?: ($s->cloud_provider === 'local' ? route('admin.submissions.file', $s) : null); @endphp
+                                @if ($fileLink)<a href="{{ $fileLink }}" target="_blank" rel="noopener" class="text-brand-700 underline">{{ $s->cloud_path }}</a>@else{{ $s->cloud_path }}@endif
                                 {{ $s->cloud_locked ? '· read-only' : '' }}
                                 @if ($s->share_url) · <a href="{{ $s->share_url }}" target="_blank" rel="noopener" class="text-brand-700 underline">link share</a>@endif
                             @elseif (\App\Services\Staging::exists($s))

@@ -1,7 +1,7 @@
 <div class="max-w-4xl space-y-6">
     <div>
 
-        <p class="text-sm text-slate-600">File yang lolos AI dipindahkan dari server ke cloud dengan struktur <code>{{ $form['cloud__root_folder'] }}/&lt;Fakultas&gt;/&lt;NIM&gt;_&lt;Nama&gt;.pdf</code>, lalu salinan di server dihapus.</p>
+        <p class="text-sm text-slate-600">File yang lolos AI dipindahkan dari staging ke penyimpanan terpilih (cloud, atau <strong>Server lokal</strong> bila tidak memakai cloud) dengan struktur <code>{{ $form['cloud__root_folder'] }}/&lt;Fakultas&gt;/&lt;NIM&gt;_&lt;Nama&gt;.pdf</code>, lalu salinan staging dihapus.</p>
     </div>
     @if ($flash)<div class="rounded-2xl bg-brand-50 px-4 py-3 text-sm text-brand-800">{{ $flash }}</div>@endif
     @if ($testResult)<div class="rounded-lg bg-slate-50 px-3 py-2 font-mono text-xs">{{ $testResult }}</div>@endif
@@ -65,6 +65,16 @@
                 <p class="text-xs text-slate-400">Simpan client ID/secret terlebih dahulu sebelum menekan "Hubungkan akun".</p>
             </div>
         @endforeach
+
+        <div class="card space-y-2 p-5">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <h2 class="font-semibold">{{ $providers['local'] }}</h2>
+                <span class="rounded-full px-2 py-0.5 text-xs {{ $local['ready'] ? 'bg-brand-100 text-brand-800' : 'bg-accent-100 text-accent-600' }}">{{ $local['ready'] ? 'Siap' : 'Folder tidak bisa ditulis' }}</span>
+            </div>
+            <p class="text-xs text-slate-500">Semua file disimpan di server ini, tanpa akun cloud, dan tidak bisa diakses langsung dari web: admin membukanya lewat dashboard. Tidak butuh "Hubungkan akun". Pilihan "link share" diabaikan, dan file yang ditolak dipindah ke folder <code>_trash</code>.</p>
+            <p class="text-xs text-slate-500">Lokasi: <code class="select-all">{{ $local['dir'] }}</code></p>
+            <p class="text-xs text-slate-500">Pastikan folder ini ikut dicadangkan. Pada Docker, folder ini berada di volume <code>storage</code> dan tetap ada setelah container dibuat ulang.</p>
+        </div>
 
         <div class="flex gap-2">
             <button class="btn-primary">Simpan</button>

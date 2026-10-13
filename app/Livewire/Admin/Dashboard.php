@@ -56,7 +56,7 @@ class Dashboard extends Component
             'activity' => ActivityLog::with('submission:id,nim,nama')->latest('id')->limit(6)->get(),
             'systems' => [
                 ['AI pemeriksa', $ai->isConfigured(), 'sparkles'],
-                ['Cloud '.($storage ? CloudStorageManager::PROVIDERS[$storage->name()] : ''), (bool) $storage?->isConnected(), 'cloud'],
+                [$storage?->name() === 'local' ? 'Penyimpanan server lokal' : 'Cloud '.($storage ? CloudStorageManager::PROVIDERS[$storage->name()] : ''), (bool) $storage?->isConnected(), 'cloud'],
                 ['WhatsApp', $wa->isConfigured(), 'chat'],
                 ['DSpace', $dspace->isConfigured(), 'library'],
                 ['Kliring', $kliring->isConfigured() && $kliring->hasSession(), 'check'],

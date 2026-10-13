@@ -16,7 +16,7 @@ class CloudOAuthController extends Controller
 
     public function redirect(Request $request, string $provider)
     {
-        abort_unless(isset(CloudStorageManager::PROVIDERS[$provider]), 404);
+        abort_unless(in_array($provider, CloudStorageManager::OAUTH, true), 404);
 
         $state = Str::random(40);
         $request->session()->put('oauth_state', [$provider, $state]);
@@ -26,7 +26,7 @@ class CloudOAuthController extends Controller
 
     public function callback(Request $request, string $provider)
     {
-        abort_unless(isset(CloudStorageManager::PROVIDERS[$provider]), 404);
+        abort_unless(in_array($provider, CloudStorageManager::OAUTH, true), 404);
         [$expectedProvider, $expectedState] = $request->session()->pull('oauth_state', [null, null]);
         abort_unless($expectedProvider === $provider && hash_equals((string) $expectedState, (string) $request->query('state')), 403);
 

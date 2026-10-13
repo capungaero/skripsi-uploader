@@ -33,7 +33,7 @@ class CloudStorage extends SettingsForm
     public function save(Settings $settings): void
     {
         $this->persist($settings, [
-            'form.cloud__provider' => ['required', 'in:none,gdrive,onedrive,dropbox'],
+            'form.cloud__provider' => ['required', 'in:none,gdrive,onedrive,dropbox,local'],
             'form.cloud__root_folder' => ['required', 'string', 'max:100', 'not_regex:/[\\\\\/:*?"<>|]/'],
         ]);
     }
@@ -57,7 +57,7 @@ class CloudStorage extends SettingsForm
 
     public function disconnect(string $provider, Settings $settings): void
     {
-        abort_unless(isset(CloudStorageManager::PROVIDERS[$provider]), 404);
+        abort_unless(in_array($provider, CloudStorageManager::OAUTH, true), 404);
         $settings->set($provider.'.refresh_token', null);
         ActivityLogger::admin('cloud.disconnected', null, ['provider' => $provider]);
         $this->flash = CloudStorageManager::PROVIDERS[$provider].' diputus.';
@@ -66,7 +66,7 @@ class CloudStorage extends SettingsForm
     public function render(CloudStorageManager $manager)
     {
         $status = [];
-        foreach (array_keys(CloudStorageManager::PROVIDERS) as $name) {
+        foreach (CloudStorageManager::OAUTH as $name) {
             $status[$name] = [
                 'connected' => $manager->driver($name)->isConnected(),
                 'callback' => app(CloudOAuthController::class)->callbackUrl($name),
@@ -76,6 +76,7 @@ class CloudStorage extends SettingsForm
         return view('livewire.admin.settings.cloud-storage', [
             'providers' => CloudStorageManager::PROVIDERS,
             'status' => $status,
+            'local' => ['dir' => config('skripsi.local_dir'), 'ready' => $manager->driver('local')->isConnected()],
         ]);
     }
 }

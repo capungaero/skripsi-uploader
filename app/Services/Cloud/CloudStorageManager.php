@@ -10,7 +10,11 @@ class CloudStorageManager
         'gdrive' => 'Google Drive',
         'onedrive' => 'OneDrive',
         'dropbox' => 'Dropbox',
+        'local' => 'Server lokal',
     ];
+
+    /** Providers that connect through an OAuth account (everything except local storage). */
+    public const OAUTH = ['gdrive', 'onedrive', 'dropbox'];
 
     public function __construct(private Settings $settings) {}
 
@@ -28,6 +32,7 @@ class CloudStorageManager
             'gdrive' => new GoogleDriveStorage($this->settings),
             'onedrive' => new OneDriveStorage($this->settings),
             'dropbox' => new DropboxStorage($this->settings),
+            'local' => new LocalStorage,
             default => throw new CloudException("Unknown cloud provider {$name}."),
         };
     }
