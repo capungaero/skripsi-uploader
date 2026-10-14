@@ -149,14 +149,14 @@
 
     {{-- Right panel --}}
     <aside class="space-y-5">
-        <section class="card p-5" x-data="{ tab: 'queue' }">
+        <section class="card p-5" x-data="{ tab: 'log' }" wire:poll.30s>
             <div class="mb-4 flex items-center justify-between">
                 <h2 class="flex items-center gap-2 font-semibold text-slate-800"><x-icon name="clock" class="h-5 w-5 text-slate-400"/> Terbaru</h2>
                 <a href="{{ route('admin.submissions', ['status' => 'queue']) }}" wire:navigate class="text-xs text-slate-400 hover:text-brand-600">Lihat semua</a>
             </div>
             <div class="mb-4 grid grid-cols-2 rounded-2xl bg-surface p-1 text-xs font-medium">
-                <button type="button" @click="tab = 'queue'" class="rounded-xl py-2 transition" :class="tab === 'queue' ? 'bg-brand-600 text-white shadow-soft' : 'text-slate-400'">Antrean</button>
                 <button type="button" @click="tab = 'log'" class="rounded-xl py-2 transition" :class="tab === 'log' ? 'bg-brand-600 text-white shadow-soft' : 'text-slate-400'">Aktivitas</button>
+                <button type="button" @click="tab = 'queue'" class="rounded-xl py-2 transition" :class="tab === 'queue' ? 'bg-brand-600 text-white shadow-soft' : 'text-slate-400'">Antrean</button>
             </div>
 
             <ul x-show="tab === 'queue'" class="space-y-1">
@@ -184,8 +184,8 @@
                             <x-icon :name="['admin' => 'users', 'student' => 'upload'][$log->actor_type] ?? 'cog'" class="h-4 w-4"/>
                         </span>
                         <div class="min-w-0 flex-1">
-                            <p class="truncate font-mono text-xs text-slate-700">{{ $log->action }}</p>
-                            <p class="truncate text-xs text-slate-400">{{ $log->submission?->nim ?? $log->actor_label }}</p>
+                            <p class="truncate text-sm font-medium text-slate-700">{{ $log->label() }}</p>
+                            <p class="truncate text-xs text-slate-400">{{ $log->submission ? $log->submission->nim.' · '.$log->submission->nama : $log->actor_label }}</p>
                             <p class="text-[11px] text-slate-300">{{ $log->created_at->diffForHumans() }}</p>
                         </div>
                     </li>

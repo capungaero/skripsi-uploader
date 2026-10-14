@@ -11,6 +11,7 @@ use App\Models\ActivityLog;
 use App\Models\Setting;
 use App\Models\Submission;
 use App\Models\User;
+use App\Services\ActivityLogger;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Livewire\Livewire;
@@ -65,6 +66,25 @@ class AdminTest extends TestCase
         $this->get('/admin')->assertOk()->assertSee('Antrean verifikasi');
         $this->get('/admin/submissions?search=siti')->assertOk()->assertSee('2011012345');
         $this->get('/admin/submissions?search=tidakada')->assertOk()->assertDontSee('2011012345');
+    }
+
+    public function test_dashboard_shows_latest_activity_readably_and_newest_queue_first(): void
+    {
+        $this->actingAs($this->admin());
+        $old = $this->stagedSubmission(['status' => Submission::AI_ACCEPTED, 'nim' => '1111111111', 'nama' => 'Mahasiswa Lama']);
+        $new = $this->stagedSubmission(['status' => Submission::AI_ACCEPTED, 'nim' => '2222222222', 'nama' => 'Mahasiswa Baru', 'file_hash' => str_repeat('b', 64)]);
+        ActivityLogger::system('ai.accepted', $old);
+        ActivityLogger::admin('submission.file_viewed', $old);
+        ActivityLogger::system('cloud.uploaded', $new);
+
+        $html = $this->get('/admin')->assertOk()->getContent();
+
+        $this->assertLessThan(strpos($html, 'Mahasiswa Lama'), strpos($html, 'Mahasiswa Baru'));
+        $this->assertStringContainsString('File disimpan ke penyimpanan', $html);
+        $this->assertStringContainsString('Lolos pengecekan AI', $html);
+        $this->assertStringNotContainsString('submission.file_viewed', $html);
+        $this->assertStringNotContainsString('cloud.uploaded', $html);
+        $this->assertStringContainsString('wire:poll', $html);
     }
 
     public function test_approve_records_verifier_and_queues_finalize(): void

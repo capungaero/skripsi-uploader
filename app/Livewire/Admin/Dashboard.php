@@ -52,8 +52,8 @@ class Dashboard extends Component
                 ->sortByDesc(fn ($f) => $perFaculty[$f->id]->total ?? 0)->values(),
             'perFaculty' => $perFaculty,
             'years' => Submission::distinct()->orderByDesc('academic_year')->pluck('academic_year'),
-            'queue' => (clone $base)->with('faculty')->where('status', Submission::AI_ACCEPTED)->oldest()->limit(6)->get(),
-            'activity' => ActivityLog::with('submission:id,nim,nama')->latest('id')->limit(6)->get(),
+            'queue' => (clone $base)->with('faculty')->where('status', Submission::AI_ACCEPTED)->latest('id')->limit(6)->get(),
+            'activity' => ActivityLog::with('submission:id,nim,nama')->whereNotIn('action', ActivityLog::NOISY)->latest('id')->limit(8)->get(),
             'systems' => [
                 ['AI pemeriksa', $ai->isConfigured(), 'sparkles'],
                 [$storage?->name() === 'local' ? 'Penyimpanan server lokal' : 'Cloud '.($storage ? CloudStorageManager::PROVIDERS[$storage->name()] : ''), (bool) $storage?->isConnected(), 'cloud'],
