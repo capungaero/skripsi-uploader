@@ -14,6 +14,14 @@ class LocalStorage implements CloudStorage
 {
     private const TRASH = '_trash';
 
+    // The queue worker (root in Docker) writes these files, but the web server (www-data) reads them when an
+    // admin opens a PDF, so they must stay world-readable. The storage root is private to the container anyway.
+    private const DIR_MODE = 0755;
+
+    private const FILE_MODE = 0644;
+
+    private const READ_ONLY_MODE = 0444;
+
     public function name(): string
     {
         return 'local';
@@ -23,7 +31,7 @@ class LocalStorage implements CloudStorage
     {
         $root = $this->root();
         if (! is_dir($root)) {
-            @mkdir($root, 0770, true);
+            @mkdir($root, self::DIR_MODE, true);
         }
 
         return is_dir($root) && is_writable($root);
@@ -33,7 +41,7 @@ class LocalStorage implements CloudStorage
     {
         $relative = implode('/', array_map(fn ($s) => Submission::safeFolderName((string) $s) ?: '_', $segments));
         $path = $this->resolve($relative);
-        if (! is_dir($path) && ! @mkdir($path, 0770, true) && ! is_dir($path)) {
+        if (! is_dir($path) && ! @mkdir($path, self::DIR_MODE, true) && ! is_dir($path)) {
             throw new CloudException("Folder lokal tidak bisa dibuat: {$relative}");
         }
 
@@ -50,19 +58,20 @@ class LocalStorage implements CloudStorage
             throw new CloudException("File tidak bisa disalin ke penyimpanan lokal: {$relative}");
         }
         if (is_file($target)) {
-            @chmod($target, 0660); // a re-upload replaces a file that was locked read-only
+            @chmod($target, self::FILE_MODE); // a re-upload replaces a file that was locked read-only
         }
         if (! @rename($partial, $target)) {
             @unlink($partial);
             throw new CloudException("File tidak bisa disimpan di penyimpanan lokal: {$relative}");
         }
+        @chmod($target, self::FILE_MODE);
 
         return $relative;
     }
 
     public function setReadOnly(string $fileId): bool
     {
-        return @chmod($this->existing($fileId), 0440);
+        return @chmod($this->existing($fileId), self::READ_ONLY_MODE);
     }
 
     /** Local files are opened from the dashboard (authenticated), so there is no external link. */
@@ -93,9 +102,9 @@ class LocalStorage implements CloudStorage
 
         $trash = $this->resolve(self::TRASH);
         if (! is_dir($trash)) {
-            @mkdir($trash, 0770, true);
+            @mkdir($trash, self::DIR_MODE, true);
         }
-        @chmod($path, 0660);
+        @chmod($path, self::FILE_MODE);
         if (! @rename($path, $trash.DIRECTORY_SEPARATOR.date('Ymd_His').'_'.basename($path))) {
             throw new CloudException("File lokal tidak bisa dipindah ke sampah: {$fileId}");
         }
