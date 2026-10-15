@@ -1,10 +1,12 @@
 @php
     // Smooth line chart geometry (SVG viewBox 600x160).
     $w = 600; $h = 160; $top = 22; $bottom = 138;
+    $monthly = $series['points'];
+    $n = count($monthly);
     $max = max(1, max(array_column($monthly, 'total')));
     $pts = [];
     foreach ($monthly as $i => $m) {
-        $pts[] = [round($i * $w / 11, 1), round($bottom - ($m['total'] / $max) * ($bottom - $top), 1)];
+        $pts[] = [round($i * $w / max(1, $n - 1), 1), round($bottom - ($m['total'] / $max) * ($bottom - $top), 1)];
     }
     $line = 'M'.$pts[0][0].','.$pts[0][1];
     for ($i = 0; $i < count($pts) - 1; $i++) {
@@ -23,7 +25,7 @@
         <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_260px]">
 
             {{-- Overview --}}
-            <section class="card-violet relative overflow-hidden p-5 sm:p-6" x-data="{ sel: 11, pts: @js($chart) }">
+            <section class="card-violet relative overflow-hidden p-5 sm:p-6" wire:key="overview-{{ $range }}-{{ $offset }}" x-data="{ sel: {{ $n - 1 }}, pts: @js($chart) }">
                 <div class="flex items-center justify-between gap-3">
                     <h2 class="text-lg font-semibold">Ringkasan Unggahan</h2>
                     <select wire:model.live="year" aria-label="Tahun akademik"
@@ -31,6 +33,21 @@
                         <option value="">Semua tahun</option>
                         @foreach ($years as $y)<option value="{{ $y }}">{{ $y }}</option>@endforeach
                     </select>
+                </div>
+
+                <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
+                    <div class="inline-flex rounded-xl bg-white/10 p-0.5 text-xs" role="group" aria-label="Rentang grafik">
+                        @foreach (['month' => 'Bulan', 'week' => 'Minggu', 'day' => 'Jam'] as $key => $label)
+                            <button type="button" wire:click="setRange('{{ $key }}')" @class(['rounded-[10px] px-3 py-1.5 transition', 'bg-white font-semibold text-brand-700' => $range === $key, 'text-white/80 hover:bg-white/15' => $range !== $key])>{{ $label }}</button>
+                        @endforeach
+                    </div>
+                    @if ($series['caption'])
+                        <div class="flex items-center gap-1 text-xs">
+                            <button type="button" wire:click="step(-1)" class="rounded-lg px-2 py-1 hover:bg-white/15" aria-label="{{ $range === 'week' ? 'Minggu sebelumnya' : 'Hari sebelumnya' }}">‹</button>
+                            <span class="min-w-[9.5rem] text-center">{{ $series['caption'] }}</span>
+                            <button type="button" wire:click="step(1)" @disabled(! $series['canForward']) class="rounded-lg px-2 py-1 hover:bg-white/15 disabled:opacity-30 disabled:hover:bg-transparent" aria-label="{{ $range === 'week' ? 'Minggu berikutnya' : 'Hari berikutnya' }}">›</button>
+                        </div>
+                    @endif
                 </div>
 
                 <div class="relative mt-4">
@@ -56,17 +73,17 @@
                     </div>
                 </div>
 
-                <div class="mt-3 grid grid-cols-12 gap-0.5 text-[11px] text-brand-100 sm:text-xs">
+                <div class="mt-3 grid gap-0.5 text-brand-100 {{ $n > 12 ? 'text-[9px] sm:text-[10px]' : 'text-[11px] sm:text-xs' }}" style="grid-template-columns: repeat({{ $n }}, minmax(0, 1fr))">
                     <template x-for="(p, i) in pts" :key="i">
-                        <button type="button" @click="sel = i" x-text="p.label"
-                                class="rounded-full px-0 py-1 text-center transition"
-                                :class="sel === i ? 'bg-white font-semibold text-brand-700' : 'hover:bg-white/15'"></button>
+                        <button type="button" @click="sel = i" :title="p.full" x-text="({{ $n > 12 ? 'true' : 'false' }} && i % 3 !== 0 && sel !== i) ? ' ' : p.label"
+                                class="relative whitespace-nowrap rounded-full px-0 py-1 text-center transition"
+                                :class="sel === i ? 'z-10 bg-white font-semibold text-brand-700 {{ $n > 12 ? '-mx-1 px-1.5' : '' }}' : 'hover:bg-white/15'"></button>
                     </template>
                 </div>
 
                 <div class="mt-5 grid grid-cols-3 gap-2 text-center">
                     <div class="py-2">
-                        <p class="text-[11px] text-brand-100">Bulan terpilih</p>
+                        <p class="text-[11px] text-brand-100">{{ $series['unit'] }}</p>
                         <p class="text-xl font-semibold sm:text-2xl" x-text="pts[sel].total.toLocaleString('id-ID')"></p>
                         <p class="text-[11px] text-brand-100" x-text="pts[sel].full"></p>
                     </div>

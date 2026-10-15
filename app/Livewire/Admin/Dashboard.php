@@ -24,6 +24,26 @@ class Dashboard extends Component
     #[Url]
     public string $year = '';
 
+    /** Overview chart: month (12 months), week (7 days) or day (24 hours). */
+    #[Url]
+    public string $range = 'month';
+
+    /** How many weeks (week view) or days (day view) back from today; 0 = the latest. */
+    #[Url]
+    public int $offset = 0;
+
+    public function setRange(string $range): void
+    {
+        $this->range = in_array($range, ['month', 'week', 'day'], true) ? $range : 'month';
+        $this->offset = 0;
+    }
+
+    /** -1 = one step back in time, +1 = forward (never past today). */
+    public function step(int $direction): void
+    {
+        $this->offset = max(-520, min(0, $this->offset + ($direction <=> 0)));
+    }
+
     public function render(AiClient $ai, CloudStorageManager $cloud, WhatsAppSender $wa, DspaceClient $dspace, KliringClient $kliring)
     {
         $base = Submission::query()->when($this->year, fn ($q) => $q->where('academic_year', $this->year));
@@ -47,7 +67,7 @@ class Dashboard extends Component
             'rejected' => $sum(Submission::REJECTED),
             'deposited' => $sum([Submission::DEPOSITED]),
             'errorCount' => $sum([Submission::AI_ERROR, Submission::DEPOSIT_FAILED]),
-            'monthly' => $this->monthly(),
+            'series' => $this->series(),
             'faculties' => Faculty::orderBy('sort')->get()
                 ->sortByDesc(fn ($f) => $perFaculty[$f->id]->total ?? 0)->values(),
             'perFaculty' => $perFaculty,
@@ -62,6 +82,72 @@ class Dashboard extends Component
                 ['Kliring', $kliring->isConfigured() && $kliring->hasSession(), 'check'],
             ],
         ]);
+    }
+
+    /**
+     * Data of the overview chart.
+     *
+     * @return array{points: array<int, array{label: string, full: string, total: int}>, unit: string, caption: ?string, canForward: bool}
+     */
+    private function series(): array
+    {
+        return match ($this->range) {
+            'week' => $this->weekly(),
+            'day' => $this->hourly(),
+            default => ['points' => $this->monthly(), 'unit' => 'Bulan terpilih', 'caption' => null, 'canForward' => false],
+        };
+    }
+
+    /** Uploads per day over seven days (local time), the last day being today shifted back by whole weeks. */
+    private function weekly(): array
+    {
+        $tz = config('skripsi.timezone');
+        $last = Carbon::now($tz)->startOfDay()->addWeeks($this->offset);
+        $first = $last->copy()->subDays(6);
+        $counts = $this->bucketCounts($first->copy(), $last->copy()->endOfDay(), fn (Carbon $t) => $t->format('Y-m-d'));
+
+        $points = [];
+        for ($day = $first->copy(); $day <= $last; $day->addDay()) {
+            $points[] = ['label' => $day->translatedFormat('D'), 'full' => $day->translatedFormat('l, j F Y'), 'total' => $counts[$day->format('Y-m-d')] ?? 0];
+        }
+
+        return ['points' => $points, 'unit' => 'Hari terpilih', 'caption' => $first->translatedFormat('j M').' – '.$last->translatedFormat('j M Y'), 'canForward' => $this->offset < 0];
+    }
+
+    /** Uploads per hour over one local day. */
+    private function hourly(): array
+    {
+        $tz = config('skripsi.timezone');
+        $day = Carbon::now($tz)->startOfDay()->addDays($this->offset);
+        $counts = $this->bucketCounts($day->copy(), $day->copy()->endOfDay(), fn (Carbon $t) => (int) $t->format('G'));
+
+        $points = [];
+        for ($h = 0; $h < 24; $h++) {
+            $points[] = ['label' => sprintf('%02d', $h), 'full' => sprintf('Jam %02d.00–%02d.59', $h, $h), 'total' => $counts[$h] ?? 0];
+        }
+
+        return ['points' => $points, 'unit' => 'Jam terpilih', 'caption' => $day->translatedFormat('l, j F Y'), 'canForward' => $this->offset < 0];
+    }
+
+    /**
+     * Count uploads between two local-time instants, grouped by $key (applied to the local time).
+     *
+     * @return array<int|string, int>
+     */
+    private function bucketCounts(Carbon $from, Carbon $to, \Closure $key): array
+    {
+        $tz = config('skripsi.timezone');
+        $counts = [];
+        $times = Submission::query()
+            ->when($this->year, fn ($q) => $q->where('academic_year', $this->year))
+            ->whereBetween('created_at', [$from->copy()->utc(), $to->copy()->utc()])
+            ->pluck('created_at');
+        foreach ($times as $t) {
+            $k = $key(Carbon::parse($t)->setTimezone($tz));
+            $counts[$k] = ($counts[$k] ?? 0) + 1;
+        }
+
+        return $counts;
     }
 
     /** Upload counts for the last 12 months, oldest first. */
