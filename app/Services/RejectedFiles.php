@@ -88,6 +88,18 @@ class RejectedFiles
         return true;
     }
 
+    /** Move the kept file back into staging (it re-enters the pipeline) and clear the record. Returns the staging name. */
+    public function release(Submission $submission): ?string
+    {
+        if (! ($path = $this->path($submission))) {
+            return null;
+        }
+        $name = Staging::adopt($path);
+        $submission->forceFill(['review_path' => null, 'review_at' => null])->save();
+
+        return $name;
+    }
+
     /** Delete every kept file. Returns how many submissions were cleared. */
     public function deleteAll(): int
     {

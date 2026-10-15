@@ -81,6 +81,7 @@ class Settings
         'wa.tpl.ai_accepted' => "Halo {nama} ({nim}),\n\nFile Karya Ilmiah Anda *DITERIMA* oleh pengecekan otomatis dan masuk antrean verifikasi manual oleh pustakawan. Pantau status di {link}.\n\n— Perpustakaan Universitas Andalas",
         'wa.tpl.admin_approved' => "Halo {nama} ({nim}),\n\nKarya Ilmiah Anda telah *DIVERIFIKASI* oleh pustakawan dan akan disimpan ke repositori.\n{catatan}\n\nUntuk surat bebas pustaka, silakan ajukan *permohonan kliring* di https://kliringlib.unand.ac.id dengan akun perpustakaan Anda. Permohonan akan disetujui otomatis.\n\n— Perpustakaan Universitas Andalas",
         'wa.tpl.admin_rejected' => "Halo {nama} ({nim}),\n\nKarya Ilmiah Anda *DITOLAK* pada verifikasi manual.\nCatatan pustakawan: {catatan}\n\nSilakan perbaiki lalu unggah ulang di {link}. Sisa percobaan: {sisa_percobaan}.\n\n— Perpustakaan Universitas Andalas",
+        'wa.tpl.restored' => "Halo {nama} ({nim}),\n\nMohon maaf, penolakan sebelumnya pada Karya Ilmiah Anda keliru. Karya Ilmiah Anda sudah dikembalikan ke antrean verifikasi pustakawan dan *tidak perlu diunggah ulang*. Pantau status di {link}.\n\n— Perpustakaan Universitas Andalas",
         'wa.tpl.deposited' => "Halo {nama} ({nim}),\n\nKarya Ilmiah Anda sudah tersimpan di repositori Universitas Andalas: {handle}\n\n— Perpustakaan Universitas Andalas",
 
         'dspace.enabled' => false,

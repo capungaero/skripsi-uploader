@@ -27,6 +27,18 @@ class Staging
         return $name;
     }
 
+    /** Move an existing PDF into staging and return its staging name. */
+    public static function adopt(string $path): string
+    {
+        $name = now()->format('Ymd').'_'.Str::random(32).'.pdf';
+        $target = self::dir().DIRECTORY_SEPARATOR.$name;
+        if (! (@rename($path, $target) || (@copy($path, $target) && @unlink($path)))) {
+            throw new \RuntimeException('File tidak bisa dipindahkan ke staging.');
+        }
+
+        return $name;
+    }
+
     public static function path(Submission $submission): ?string
     {
         if (! $submission->staging_path) {

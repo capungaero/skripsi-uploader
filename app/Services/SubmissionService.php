@@ -6,6 +6,7 @@ use App\Jobs\ApproveInKliring;
 use App\Jobs\CheckSubmissionPdf;
 use App\Jobs\DepositToDspace;
 use App\Jobs\FinalizeApproved;
+use App\Jobs\PushToCloud;
 use App\Jobs\RemoveFromCloud;
 use App\Models\Submission;
 use App\Models\User;
@@ -115,6 +116,45 @@ class SubmissionService
             RemoveFromCloud::dispatch($submission->id);
         }
         app(SubmissionNotifier::class)->notify($submission, 'admin_rejected');
+    }
+
+    /**
+     * The rejection was a mistake: put the upload back in the verification queue without the student uploading again.
+     * Needs the file: the PDF kept for evaluation, or a cloud copy that has not been removed yet.
+     */
+    public function restore(Submission $submission, User $admin): void
+    {
+        $this->assertStatus($submission, Submission::REJECTED);
+
+        $files = app(RejectedFiles::class);
+        if (! $files->path($submission) && ! $submission->cloud_file_id) {
+            throw ValidationException::withMessages(['status' => 'File PDF tidak tersimpan, jadi tidak bisa dipulihkan. Minta mahasiswa mengunggah ulang.']);
+        }
+        $other = Submission::forNim($submission->nim)->where('id', '!=', $submission->id)->whereIn('status', Submission::ACTIVE)->first();
+        if ($other) {
+            throw ValidationException::withMessages(['status' => 'NIM ini sudah punya unggahan lain yang aktif ("'.$other->statusLabel().'"). Pemulihan hanya bisa bila tidak ada unggahan aktif lain.']);
+        }
+        if (Submission::where('file_hash', $submission->file_hash)->where('nim', '!=', $submission->nim)->whereIn('status', Submission::ACTIVE)->exists()) {
+            throw ValidationException::withMessages(['status' => 'File PDF yang sama sudah dipakai NIM lain.']);
+        }
+
+        $from = $submission->status;
+        $staging = $files->release($submission);
+        $submission->update([
+            'status' => Submission::AI_ACCEPTED,
+            'staging_path' => $staging ?? $submission->staging_path,
+            'rejection_reasons' => null,
+            'admin_note' => null,
+            'verified_by' => null,
+            'verified_at' => null,
+            'last_error' => null,
+        ]);
+        ActivityLogger::admin('submission.restored', $submission, ['from' => $from]);
+
+        if ($staging) {
+            PushToCloud::dispatch($submission->id); // back to the storage, like a fresh pass of the AI check
+        }
+        app(SubmissionNotifier::class)->notify($submission, 'restored');
     }
 
     public function deposit(Submission $submission): void

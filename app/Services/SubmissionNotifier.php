@@ -15,6 +15,7 @@ class SubmissionNotifier
         'admin_approved' => 'Disetujui admin',
         'admin_rejected' => 'Ditolak admin',
         'deposited' => 'Tersimpan di DSpace',
+        'restored' => 'Dipulihkan ke antrean (penolakan keliru)',
     ];
 
     public function __construct(private Settings $settings, private SubmissionService $submissions) {}

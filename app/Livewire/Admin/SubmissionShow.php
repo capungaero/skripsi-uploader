@@ -69,6 +69,11 @@ class SubmissionShow extends Component
         $this->flash = 'Upload ke cloud dijadwalkan ulang.';
     }
 
+    public function restore(SubmissionService $service): void
+    {
+        $this->run(fn () => $service->restore($this->submission, Auth::user()), 'Dipulihkan ke antrean verifikasi. Mahasiswa diberi tahu lewat WhatsApp.');
+    }
+
     /** Permanently remove the PDF kept for evaluation (after the manual review is done). */
     public function deleteReviewFile(RejectedFiles $files): void
     {
@@ -112,6 +117,7 @@ class SubmissionShow extends Component
             'history' => Submission::forNim($this->submission->nim)->where('id', '!=', $this->submission->id)->latest('id')->get(),
             'hasFile' => Staging::exists($this->submission) || $this->submission->cloud_file_id || $kept->path($this->submission),
             'reviewFile' => $kept->path($this->submission) ? $this->submission->review_at : null,
+            'canRestore' => in_array($this->submission->status, Submission::REJECTED, true) && ($kept->path($this->submission) || $this->submission->cloud_file_id),
             'handleUrl' => $dspace->handleUrl($this->submission->dspace_handle),
         ]);
     }

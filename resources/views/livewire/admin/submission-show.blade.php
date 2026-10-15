@@ -140,6 +140,13 @@
                         </div>
                     </div>
                 @endif
+                @if ($canRestore)
+                    <div class="rounded-2xl bg-brand-50 p-3 text-sm text-brand-900">
+                        <p class="font-medium">Ternyata penolakan ini keliru?</p>
+                        <p class="mt-0.5 text-xs text-brand-800">Kembalikan ke antrean verifikasi tanpa mahasiswa mengunggah ulang. Mahasiswa diberi tahu lewat WhatsApp.</p>
+                        <button type="button" wire:click="restore" wire:loading.attr="disabled" wire:confirm="Pulihkan unggahan ini ke antrean verifikasi?" class="btn-primary mt-2 text-xs">Pulihkan ke antrean verifikasi</button>
+                    </div>
+                @endif
                 @if ($s->verifier)
                     <p class="text-xs text-slate-500">Diverifikasi oleh {{ $s->verifier->name }} · {{ $s->verified_at?->format('d/m/Y H:i') }}</p>
                 @endif
