@@ -105,6 +105,12 @@ class UploadTest extends TestCase
         $this->assertContains('Spesialis', collect($form['fields'])->firstWhere('key', 'jenjang')['options']);
     }
 
+    public function test_user_guide_pdf_is_published_and_linked(): void
+    {
+        $this->assertFileExists(public_path('panduan/Panduan_Unggah_Karya_Ilmiah.pdf'));
+        $this->get('/')->assertOk()->assertSee('panduan/Panduan_Unggah_Karya_Ilmiah.pdf', false);
+    }
+
     public function test_jenjang_is_required_from_the_fixed_options_and_stored(): void
     {
         $this->postJson('/api/submissions', $this->uploadPayload(['jenjang' => '']))
