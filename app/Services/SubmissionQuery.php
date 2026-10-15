@@ -29,7 +29,9 @@ class SubmissionQuery
         }
 
         $status = (string) ($filters['status'] ?? '');
-        if (isset(self::GROUPS[$status])) {
+        if ($status === 'review') {
+            $query->whereNotNull('review_path'); // rejected uploads whose PDF is kept for evaluation
+        } elseif (isset(self::GROUPS[$status])) {
             $query->whereIn('status', self::GROUPS[$status]);
         } elseif (isset(Submission::ADMIN_LABELS[$status])) {
             $query->where('status', $status);

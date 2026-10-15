@@ -20,7 +20,7 @@ class AiConfig extends SettingsForm
 
     protected function keys(): array
     {
-        return ['ai.enabled', 'ai.base_url', 'ai.api_key', 'ai.model', 'ai.json_mode', 'ai.timeout', 'ai.max_images', 'ai.max_text_chars', 'ai.max_tokens'];
+        return ['ai.enabled', 'ai.base_url', 'ai.api_key', 'ai.model', 'ai.json_mode', 'ai.timeout', 'ai.max_images', 'ai.max_text_chars', 'ai.max_tokens', 'review.keep_rejected', 'review.retention_days'];
     }
 
     public function mount(Settings $settings): void
@@ -47,6 +47,7 @@ class AiConfig extends SettingsForm
             'form.ai__max_images' => ['required', 'integer', 'min:0', 'max:20'],
             'form.ai__max_text_chars' => ['required', 'integer', 'min:2000', 'max:200000'],
             'form.ai__max_tokens' => ['required', 'integer', 'min:500', 'max:64000'],
+            'form.review__retention_days' => ['required', 'integer', 'min:0', 'max:3650'],
         ]);
     }
 
@@ -58,6 +59,13 @@ class AiConfig extends SettingsForm
             $this->testResult = 'Gagal: '.mb_substr($e->getMessage(), 0, 400);
         }
         ActivityLogger::admin('ai.connection_tested', null, ['ok' => str_starts_with($this->testResult, 'Berhasil')]);
+    }
+
+    /** Delete every PDF kept from rejected uploads (after the manual evaluation). */
+    public function deleteReviewFiles(\App\Services\RejectedFiles $files): void
+    {
+        $count = $files->deleteAll();
+        $this->flash = "{$count} file PDF untuk evaluasi dihapus.";
     }
 
     public function saveCriteria(): void
@@ -113,6 +121,6 @@ class AiConfig extends SettingsForm
 
     public function render()
     {
-        return view('livewire.admin.settings.ai-config');
+        return view('livewire.admin.settings.ai-config', ['review' => app(\App\Services\RejectedFiles::class)->stats()]);
     }
 }

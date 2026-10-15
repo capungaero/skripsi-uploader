@@ -130,6 +130,16 @@
                         <button wire:click="recheck" wire:loading.attr="disabled" class="btn-secondary">Cek ulang AI</button>
                     @endif
                 </div>
+                @if ($reviewFile)
+                    <div class="rounded-2xl bg-amber-50 p-3 text-sm text-amber-900">
+                        <p class="font-medium">PDF disimpan untuk evaluasi sistem</p>
+                        <p class="mt-0.5 text-xs text-amber-800">Disimpan {{ $reviewFile->timezone(config('skripsi.timezone'))->format('d/m/Y H:i') }}. Hapus setelah evaluasi manual selesai.</p>
+                        <div class="mt-2 flex flex-wrap items-center gap-3">
+                            <a href="{{ route('admin.submissions.file', $s) }}" target="_blank" rel="noopener" class="btn-secondary text-xs">Buka PDF</a>
+                            <button type="button" wire:click="deleteReviewFile" wire:confirm="Hapus file PDF ini secara permanen? Tidak bisa dikembalikan." class="text-xs text-red-600 underline">Hapus file</button>
+                        </div>
+                    </div>
+                @endif
                 @if ($s->verifier)
                     <p class="text-xs text-slate-500">Diverifikasi oleh {{ $s->verifier->name }} · {{ $s->verified_at?->format('d/m/Y H:i') }}</p>
                 @endif

@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\ActivityLogger;
 use App\Services\Cloud\CloudStorageManager;
 use App\Services\Kliring\KliringClient;
+use App\Services\RejectedFiles;
 use App\Services\Staging;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -76,6 +77,11 @@ Artisan::command('app:kliring-retry', function (KliringClient $kliring) {
     $this->info('Queued '.ApproveInKliring::dispatchWaiting().' kliring approval(s).');
 })->purpose('Retry kliring approvals waiting for a session or for the student request');
 
+Artisan::command('app:cleanup-rejected', function (RejectedFiles $files) {
+    $this->info('Removed '.$files->purgeExpired().' kept rejected PDF(s).');
+})->purpose('Delete kept rejected PDFs older than the retention period');
+
 Schedule::command('app:cleanup-staging')->hourly();
+Schedule::command('app:cleanup-rejected')->dailyAt('02:00');
 Schedule::command('app:kliring-keepalive')->everyTenMinutes();
 Schedule::command('app:kliring-retry')->hourly();

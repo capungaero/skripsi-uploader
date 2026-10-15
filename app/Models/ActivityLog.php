@@ -41,6 +41,8 @@ class ActivityLog extends Model
         'wa.sent' => 'WhatsApp terkirim',
         'wa.failed' => 'WhatsApp gagal',
         'attempts.reset' => 'Jatah percobaan direset',
+        'review.kept' => 'PDF tertolak disimpan untuk evaluasi',
+        'review.deleted' => 'PDF evaluasi dihapus',
         'auth.failed' => 'Login admin gagal',
     ];
 

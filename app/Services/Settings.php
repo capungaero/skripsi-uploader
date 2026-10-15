@@ -43,6 +43,9 @@ class Settings
         'ai.max_text_chars' => 24000,
         'ai.max_tokens' => 8000,
 
+        'review.keep_rejected' => true, // keep the PDF of rejected uploads so admins can evaluate the system
+        'review.retention_days' => 0, // 0 = keep until an admin deletes it
+
         'cloud.provider' => 'none', // none, gdrive, onedrive, dropbox, local
         'cloud.root_folder' => 'Koleksi Karya Ilmiah',
         'cloud.share_link' => false,

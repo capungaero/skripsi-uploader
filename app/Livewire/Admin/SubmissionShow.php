@@ -6,6 +6,7 @@ use App\Jobs\PushToCloud;
 use App\Models\Submission;
 use App\Services\ActivityLogger;
 use App\Services\Dspace\DspaceClient;
+use App\Services\RejectedFiles;
 use App\Services\Staging;
 use App\Services\SubmissionService;
 use Illuminate\Support\Facades\Auth;
@@ -68,6 +69,19 @@ class SubmissionShow extends Component
         $this->flash = 'Upload ke cloud dijadwalkan ulang.';
     }
 
+    /** Permanently remove the PDF kept for evaluation (after the manual review is done). */
+    public function deleteReviewFile(RejectedFiles $files): void
+    {
+        abort_unless($files->path($this->submission), 404);
+        if (! $files->delete($this->submission)) {
+            $this->addError('status', 'File tidak bisa dihapus (izin folder di server). Hubungi pengelola server.');
+
+            return;
+        }
+        $this->flash = 'File PDF untuk evaluasi dihapus.';
+        $this->submission->refresh();
+    }
+
     public function resetAttempts(SubmissionService $service): void
     {
         $count = $service->resetAttempts($this->submission->nim);
@@ -85,7 +99,7 @@ class SubmissionShow extends Component
         $this->submission->refresh();
     }
 
-    public function render(SubmissionService $service, DspaceClient $dspace)
+    public function render(SubmissionService $service, DspaceClient $dspace, RejectedFiles $kept)
     {
         $this->submission->load(['faculty', 'studyProgram', 'verifier', 'checks', 'logs', 'formConfig.fields']);
         $labels = $this->submission->formConfig?->fields->pluck('label', 'key') ?? collect();
@@ -96,7 +110,8 @@ class SubmissionShow extends Component
             'remaining' => $service->remainingAttempts($this->submission->nim),
             'maxAttempts' => $service->maxAttempts(),
             'history' => Submission::forNim($this->submission->nim)->where('id', '!=', $this->submission->id)->latest('id')->get(),
-            'hasFile' => Staging::exists($this->submission) || $this->submission->cloud_file_id,
+            'hasFile' => Staging::exists($this->submission) || $this->submission->cloud_file_id || $kept->path($this->submission),
+            'reviewFile' => $kept->path($this->submission) ? $this->submission->review_at : null,
             'handleUrl' => $dspace->handleUrl($this->submission->dspace_handle),
         ]);
     }

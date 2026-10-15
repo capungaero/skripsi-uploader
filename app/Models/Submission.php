@@ -76,6 +76,7 @@ class Submission extends Model
             'verified_at' => 'datetime',
             'deposited_at' => 'datetime',
             'kliring_at' => 'datetime',
+            'review_at' => 'datetime',
         ];
     }
 

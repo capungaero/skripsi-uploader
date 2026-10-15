@@ -13,6 +13,9 @@ return [
     // Time zone of the WhatsApp sending window (Pengaturan > WhatsApp > Jam kirim).
     'timezone' => env('SKRIPSI_TIMEZONE', 'Asia/Jakarta'),
 
+    // Private folder for PDFs of rejected uploads kept for evaluation (Pengaturan > AI & Kriteria).
+    'rejected_dir' => env('REJECTED_DIR', storage_path('app/ditolak')),
+
     // Staging files older than this are removed by the scheduler once they are no longer needed.
     'staging_ttl_hours' => (int) env('STAGING_TTL_HOURS', 24),
 ];

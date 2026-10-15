@@ -10,4 +10,4 @@
         'deposit_failed' => 'bg-orange-100 text-orange-800',
     ];
 @endphp
-<span class="inline-block whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium {{ $colors[$submission->status] ?? 'bg-slate-100' }}">{{ $submission->adminStatusLabel() }}</span>
+<span class="inline-block whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium {{ $colors[$submission->status] ?? 'bg-slate-100' }}">{{ $submission->adminStatusLabel() }}</span>@if ($submission->review_path)<span class="ml-1 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800" title="PDF tersimpan untuk evaluasi">PDF</span>@endif

@@ -40,6 +40,28 @@
         @if ($testResult)<p class="rounded-2xl bg-surface px-4 py-3 font-mono text-xs">{{ $testResult }}</p>@endif
     </form>
 
+    <section class="card space-y-3 p-5">
+        <h2 class="font-semibold">File PDF yang ditolak (untuk evaluasi sistem)</h2>
+        <p class="text-sm text-slate-600">Bila diaktifkan, PDF yang ditolak (oleh AI maupun pustakawan) <strong>tidak langsung dihapus</strong>. File disimpan di folder privat dan bisa dibuka dari halaman detail unggahan, supaya Anda bisa memeriksa apakah sistem salah membaca. Hapus setelah evaluasi selesai.</p>
+        <form wire:submit="save" class="space-y-3">
+            <label class="flex items-center gap-2 text-sm"><input type="checkbox" wire:model="form.review__keep_rejected"> Simpan PDF yang ditolak untuk evaluasi</label>
+            <div class="max-w-xs">
+                <label class="label" for="ret">Hapus otomatis setelah (hari)</label>
+                <input id="ret" type="number" min="0" wire:model="form.review__retention_days" class="field-input">
+                @error('form.review__retention_days')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                <p class="mt-1 text-xs text-slate-500">Isi 0 agar file hanya dihapus manual.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+                <button class="btn-secondary">Simpan</button>
+                <span class="text-sm text-slate-600">Tersimpan sekarang: <strong>{{ $review['count'] }}</strong> file ({{ number_format($review['bytes'] / 1048576, 1, ',', '.') }} MB)</span>
+                @if ($review['count'] > 0)
+                    <button type="button" wire:click="deleteReviewFiles" wire:confirm="Hapus SEMUA file PDF tertolak yang tersimpan? Tidak bisa dikembalikan." class="text-xs text-red-600 underline">Hapus semua file</button>
+                    <a href="{{ route('admin.submissions', ['status' => 'review']) }}" wire:navigate class="text-xs text-brand-700 underline">Lihat daftarnya</a>
+                @endif
+            </div>
+        </form>
+    </section>
+
     <form wire:submit="saveCriteria" class="space-y-3">
         <h2 class="font-semibold">Kriteria penilaian</h2>
         <p class="text-sm text-slate-600">Setiap kriteria diberi skor 0–100. Unggahan ditolak jika ada kriteria <em>wajib</em> di bawah skor minimum; alasan dikirim ke mahasiswa.</p>

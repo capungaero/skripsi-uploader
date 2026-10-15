@@ -10,6 +10,7 @@ use App\Services\Ai\AiClient;
 use App\Services\Ai\SubmissionEvaluator;
 use App\Services\Pdf\InvalidPdfException;
 use App\Services\Pdf\PdfInspector;
+use App\Services\RejectedFiles;
 use App\Services\Settings;
 use App\Services\Staging;
 use App\Services\SubmissionNotifier;
@@ -128,6 +129,7 @@ class CheckSubmissionPdf implements ShouldQueue
             'status' => Submission::AI_REJECTED,
             'rejection_reasons' => $reasons ?: ['Dokumen tidak memenuhi kriteria kelengkapan.'],
         ]);
+        app(RejectedFiles::class)->keepStaged($submission); // kept for evaluation (if enabled) before staging is cleared
         Staging::delete($submission);
         ActivityLogger::system('ai.rejected', $submission, ['score' => $submission->ai_score, 'reasons' => $reasons]);
 

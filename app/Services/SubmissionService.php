@@ -109,6 +109,7 @@ class SubmissionService
         ]);
         ActivityLogger::admin('submission.rejected', $submission, ['note' => $note]);
 
+        app(RejectedFiles::class)->keepStaged($submission);
         Staging::delete($submission);
         if ($submission->cloud_file_id) {
             RemoveFromCloud::dispatch($submission->id);
