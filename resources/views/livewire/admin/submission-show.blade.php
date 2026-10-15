@@ -161,7 +161,7 @@
                 <ol class="space-y-2 text-xs">
                     @foreach ($s->logs as $log)
                         <li>
-                            <p><span class="font-medium">{{ $log->action }}</span> · {{ $log->actor_label ?? $log->actor_type }}</p>
+                            <p><span class="font-medium">{{ $log->label() }}</span> · {{ $log->actor_label ?? $log->actor_type }}</p>
                             <p class="text-slate-500">{{ $log->created_at->format('d/m/Y H:i:s') }}</p>
                         </li>
                     @endforeach

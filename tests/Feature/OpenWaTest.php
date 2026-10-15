@@ -132,6 +132,15 @@ class OpenWaTest extends TestCase
             ->assertSeeHtml('wire:poll.3s="refresh"');
     }
 
+    public function test_a_session_that_was_created_but_not_started_offers_the_connect_button(): void
+    {
+        $this->settings(['wa.openwa_session' => 'sess-1']);
+        Http::fake([self::BASE.'/api/sessions/sess-1' => Http::response($this->owaSession('created'))]);
+
+        Livewire::actingAs($this->admin())->test(WhatsApp::class)
+            ->assertSee('Hubungkan nomor WhatsApp')->assertDontSee('Mohon tunggu')->assertSeeHtml('wire:poll.30s="refresh"');
+    }
+
     public function test_page_shows_the_linked_number_once_ready_and_can_unlink_it(): void
     {
         $this->settings(['wa.openwa_session' => 'sess-1']);

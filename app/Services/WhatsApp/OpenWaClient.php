@@ -13,8 +13,8 @@ use Illuminate\Support\Facades\Http;
  */
 class OpenWaClient
 {
-    /** Session states during which the page keeps polling quickly. */
-    public const CONNECTING = ['created', 'initializing', 'qr_ready', 'authenticating'];
+    /** Session states during which the page keeps polling quickly ('created' means not started: the admin must press Hubungkan). */
+    public const CONNECTING = ['initializing', 'qr_ready', 'authenticating'];
 
     private const STATUS_LABELS = [
         'created' => 'Belum dimulai',
