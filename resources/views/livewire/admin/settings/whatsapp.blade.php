@@ -66,6 +66,56 @@
         </div>
 
         <div class="card space-y-4 p-5">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <h2 class="font-semibold">Batas pengiriman (agar nomor tidak diblokir)</h2>
+                <button type="button" wire:click="applySuggested" class="btn-secondary text-xs">Terapkan saran</button>
+            </div>
+            <p class="text-xs text-slate-500">WhatsApp bisa memblokir nomor yang mengirim terlalu cepat atau terlalu banyak. Pesan yang melewati batas <strong>tidak hilang</strong>: ditahan otomatis lalu dikirim begitu diizinkan. Isi <strong>0</strong> untuk tanpa batas.</p>
+            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <div>
+                    <label class="label" for="imin">Jeda minimal (detik)</label>
+                    <input id="imin" type="number" min="0" wire:model="form.wa__interval_min" class="field-input">
+                    @error('form.wa__interval_min')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                </div>
+                <div>
+                    <label class="label" for="imax">Jeda maksimal (detik)</label>
+                    <input id="imax" type="number" min="0" wire:model="form.wa__interval_max" class="field-input">
+                    @error('form.wa__interval_max')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                </div>
+                <div>
+                    <label class="label" for="mh">Maks. pesan per jam</label>
+                    <input id="mh" type="number" min="0" wire:model="form.wa__max_per_hour" class="field-input">
+                    @error('form.wa__max_per_hour')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                </div>
+                <div>
+                    <label class="label" for="md">Maks. pesan per 24 jam</label>
+                    <input id="md" type="number" min="0" wire:model="form.wa__max_per_day" class="field-input">
+                    @error('form.wa__max_per_day')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                </div>
+            </div>
+            <p class="text-xs text-slate-500">Jeda antar dua pesan diacak antara nilai minimal dan maksimal, supaya pola pengirimannya tidak seperti robot.</p>
+            <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <div>
+                    <label class="label" for="ws">Jam kirim: mulai (opsional)</label>
+                    <input id="ws" type="time" wire:model="form.wa__window_start" class="field-input">
+                    @error('form.wa__window_start')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                </div>
+                <div>
+                    <label class="label" for="we">Jam kirim: selesai</label>
+                    <input id="we" type="time" wire:model="form.wa__window_end" class="field-input">
+                    @error('form.wa__window_end')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
+                </div>
+                <p class="self-end pb-2 text-xs text-slate-500 sm:col-span-2">Di luar jam ini pesan ditahan sampai jam mulai berikutnya ({{ $timezone }}). Kosongkan keduanya untuk mengirim kapan saja.</p>
+            </div>
+            <div class="grid gap-2 rounded-2xl bg-surface p-3 text-sm sm:grid-cols-4">
+                <p><span class="text-xs text-slate-500">Terkirim 1 jam terakhir</span><br><strong>{{ $usage['hour'] }}</strong>@if ((int) ($form['wa__max_per_hour'] ?? 0) > 0) <span class="text-slate-400">/ {{ (int) $form['wa__max_per_hour'] }}</span>@endif</p>
+                <p><span class="text-xs text-slate-500">Terkirim 24 jam terakhir</span><br><strong>{{ $usage['day'] }}</strong>@if ((int) ($form['wa__max_per_day'] ?? 0) > 0) <span class="text-slate-400">/ {{ (int) $form['wa__max_per_day'] }}</span>@endif</p>
+                <p><span class="text-xs text-slate-500">Menunggu giliran kirim</span><br><strong>{{ $usage['pending'] }}</strong> pesan</p>
+                <p><span class="text-xs text-slate-500">Pesan berikutnya boleh dikirim</span><br><strong>{{ $usage['next_in'] > 0 ? 'dalam '.$usage['next_in'].' detik' : 'sekarang' }}</strong></p>
+            </div>
+        </div>
+
+        <div class="card space-y-4 p-5">
             <h2 class="font-semibold">Template pesan</h2>
             <p class="text-xs text-slate-500">Placeholder: <code>{nama} {nim} {judul} {alasan} {catatan} {sisa_percobaan} {link} {handle}</code>. Kosongkan untuk tidak mengirim pesan pada kejadian tersebut.</p>
             @foreach ($events as $event => $label)

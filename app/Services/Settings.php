@@ -60,6 +60,12 @@ class Settings
 
         'wa.enabled' => false,
         'wa.driver' => 'openwa', // openwa (scan QR) or custom (generic HTTP gateway below)
+        'wa.interval_min' => 10, // seconds between two messages (random between min and max)
+        'wa.interval_max' => 25,
+        'wa.max_per_hour' => 40, // 0 = no limit
+        'wa.max_per_day' => 300, // per rolling 24 hours, 0 = no limit
+        'wa.window_start' => null, // optional sending window, e.g. 07:00-21:00 (blank = any time)
+        'wa.window_end' => null,
         'wa.openwa_url' => null,
         'wa.openwa_key' => null,
         'wa.openwa_session' => null,

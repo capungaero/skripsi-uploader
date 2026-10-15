@@ -7,6 +7,7 @@ use App\Services\Settings;
 use App\Services\SubmissionNotifier;
 use App\Services\WhatsApp\OpenWaClient;
 use App\Services\WhatsApp\WhatsAppSender;
+use App\Services\WhatsApp\WhatsAppThrottle;
 use Livewire\Attributes\Title;
 
 /** Link the uploader's WhatsApp number by scanning a QR (OpenWA); a generic HTTP gateway stays available under "Lanjutan". */
@@ -27,7 +28,8 @@ class WhatsApp extends SettingsForm
     protected function keys(): array
     {
         return array_merge(
-            ['wa.enabled', 'wa.driver', 'wa.url', 'wa.method', 'wa.headers', 'wa.body_format', 'wa.body_template'],
+            ['wa.enabled', 'wa.driver', 'wa.url', 'wa.method', 'wa.headers', 'wa.body_format', 'wa.body_template',
+                'wa.interval_min', 'wa.interval_max', 'wa.max_per_hour', 'wa.max_per_day', 'wa.window_start', 'wa.window_end'],
             array_map(fn ($e) => 'wa.tpl.'.$e, array_keys(SubmissionNotifier::EVENTS)),
         );
     }
@@ -114,6 +116,12 @@ class WhatsApp extends SettingsForm
         $custom = ($this->form['wa__driver'] ?? 'openwa') === 'custom';
         $this->persist($settings, [
             'form.wa__driver' => ['required', 'in:openwa,custom'],
+            'form.wa__interval_min' => ['required', 'integer', 'min:0', 'max:3600'],
+            'form.wa__interval_max' => ['required', 'integer', 'gte:form.wa__interval_min', 'max:3600'],
+            'form.wa__max_per_hour' => ['required', 'integer', 'min:0', 'max:5000'],
+            'form.wa__max_per_day' => ['required', 'integer', 'min:0', 'max:50000'],
+            'form.wa__window_start' => ['nullable', 'date_format:H:i', 'required_with:form.wa__window_end'],
+            'form.wa__window_end' => ['nullable', 'date_format:H:i', 'required_with:form.wa__window_start'],
             'form.wa__url' => ['nullable', 'url:https,http', 'max:500'],
             'form.wa__method' => ['required', 'in:POST,GET,PUT'],
             'form.wa__body_format' => ['required', 'in:json,form'],
@@ -125,6 +133,14 @@ class WhatsApp extends SettingsForm
             }],
         ]);
         $this->refresh();
+    }
+
+    /** Fill the limit fields with the suggested safe values (still needs Simpan). */
+    public function applySuggested(): void
+    {
+        foreach (WhatsAppThrottle::SUGGESTED as $key => $value) {
+            $this->form[self::field($key)] = $value;
+        }
     }
 
     public function sendTest(WhatsAppSender $sender): void
@@ -144,7 +160,7 @@ class WhatsApp extends SettingsForm
         ActivityLogger::admin('wa.tested', null, ['phone' => '***'.substr($this->testPhone, -3)]);
     }
 
-    public function render(OpenWaClient $client)
+    public function render(OpenWaClient $client, WhatsAppThrottle $throttle)
     {
         $status = $this->session['status'] ?? null;
 
@@ -155,6 +171,8 @@ class WhatsApp extends SettingsForm
             'statusLabel' => OpenWaClient::statusLabel($status),
             'connecting' => in_array($status, OpenWaClient::CONNECTING, true),
             'hasSession' => $client->hasSession(),
+            'usage' => $throttle->usage(),
+            'timezone' => config('skripsi.timezone'),
         ]);
     }
 }
