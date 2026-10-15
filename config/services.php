@@ -35,6 +35,13 @@ return [
         'password' => env('KLIRING_PASSWORD'),
     ],
 
+    // OpenWA WhatsApp gateway. The URL/key can also be entered on Pengaturan > WhatsApp.
+    'openwa' => [
+        'url' => env('OPENWA_URL'),
+        'key' => env('OPENWA_API_KEY'),
+        'session' => env('OPENWA_SESSION', 'uploader'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

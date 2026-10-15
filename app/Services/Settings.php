@@ -19,7 +19,7 @@ class Settings
         'gdrive.client_secret', 'gdrive.refresh_token',
         'onedrive.client_secret', 'onedrive.refresh_token',
         'dropbox.app_secret', 'dropbox.refresh_token',
-        'wa.headers',
+        'wa.headers', 'wa.openwa_key',
         'dspace.password',
         'kliring.session',
     ];
@@ -59,6 +59,10 @@ class Settings
         'dropbox.refresh_token' => null,
 
         'wa.enabled' => false,
+        'wa.driver' => 'openwa', // openwa (scan QR) or custom (generic HTTP gateway below)
+        'wa.openwa_url' => null,
+        'wa.openwa_key' => null,
+        'wa.openwa_session' => null,
         'wa.url' => null,
         'wa.method' => 'POST',
         'wa.headers' => '{"Authorization": "TOKEN"}',

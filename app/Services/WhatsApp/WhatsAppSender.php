@@ -14,13 +14,27 @@ class WhatsAppSender
 {
     public function __construct(private Settings $settings) {}
 
+    public function usesOpenWa(): bool
+    {
+        return $this->settings->get('wa.driver') !== 'custom' && app(OpenWaClient::class)->hasSession();
+    }
+
     public function isConfigured(): bool
     {
-        return $this->settings->bool('wa.enabled') && filled($this->settings->get('wa.url'));
+        if (! $this->settings->bool('wa.enabled')) {
+            return false;
+        }
+
+        return $this->usesOpenWa() || ($this->settings->get('wa.driver') === 'custom' && filled($this->settings->get('wa.url')))
+            || (! app(OpenWaClient::class)->isConfigured() && filled($this->settings->get('wa.url')));
     }
 
     public function send(string $phone, string $message): Response
     {
+        if ($this->usesOpenWa()) {
+            return app(OpenWaClient::class)->sendText($phone, $message);
+        }
+
         $url = (string) $this->settings->get('wa.url');
         $body = $this->renderBody(self::normalizePhone($phone), $message);
         $headers = json_decode((string) $this->settings->get('wa.headers'), true) ?: [];
