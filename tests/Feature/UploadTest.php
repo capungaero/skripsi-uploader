@@ -106,13 +106,16 @@ class UploadTest extends TestCase
         $this->assertContains('Spesialis', collect($form['fields'])->firstWhere('key', 'jenjang')['options']);
     }
 
-    public function test_user_guide_pdf_is_linked_for_admins_only(): void
+    public function test_user_guide_pdf_is_only_available_to_admins(): void
     {
-        $this->assertFileExists(public_path('panduan/Panduan_Unggah_Karya_Ilmiah.pdf'));
-        $this->get('/')->assertOk()->assertDontSee('panduan/Panduan_Unggah_Karya_Ilmiah.pdf', false);
+        $this->assertFileExists(resource_path('panduan/Panduan_Unggah_Karya_Ilmiah.pdf'));
+        $this->assertFileDoesNotExist(public_path('panduan/Panduan_Unggah_Karya_Ilmiah.pdf'));
+        $this->get('/')->assertOk()->assertDontSee('Panduan (PDF)', false);
+        $this->get('/admin/panduan')->assertRedirect();
 
         $this->actingAs(User::create(['name' => 'A', 'email' => 'a@t.id', 'password' => 'password-123456', 'role' => 'verifikator', 'is_active' => true]));
-        $this->get('/admin')->assertOk()->assertSee('panduan/Panduan_Unggah_Karya_Ilmiah.pdf', false);
+        $this->get('/admin')->assertOk()->assertSee(route('admin.guide'), false);
+        $this->get('/admin/panduan')->assertOk()->assertHeader('Content-Type', 'application/pdf');
     }
 
     public function test_jenjang_is_required_from_the_fixed_options_and_stored(): void

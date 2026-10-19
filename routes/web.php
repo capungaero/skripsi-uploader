@@ -25,6 +25,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::livewire('submissions/{submission}', Admin\SubmissionShow::class)->name('submissions.show');
         Route::get('submissions/{submission}/file', SubmissionFileController::class)->name('submissions.file');
         Route::get('export', ExportController::class)->name('export');
+        Route::get('panduan', fn () => response()->file(resource_path('panduan/Panduan_Unggah_Karya_Ilmiah.pdf'), ['Content-Type' => 'application/pdf']))->name('guide');
 
         Route::middleware('can:superadmin')->group(function () {
             Route::livewire('settings/appearance', Admin\Settings\Appearance::class)->name('settings.appearance');

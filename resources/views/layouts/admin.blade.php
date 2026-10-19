@@ -73,7 +73,7 @@
                                class="w-full rounded-2xl border-0 bg-white py-2.5 pr-4 pl-10 text-sm shadow-soft placeholder:text-slate-400 focus:ring-4 focus:ring-brand-100 focus:outline-none">
                     </label>
                 </form>
-                <a href="{{ asset('panduan/Panduan_Unggah_Karya_Ilmiah.pdf') }}" target="_blank" rel="noopener" class="hidden rounded-2xl bg-white px-3.5 py-2.5 text-xs font-medium text-brand-700 shadow-soft hover:bg-brand-50 lg:block" title="Panduan penggunaan (PDF)">Panduan (PDF)</a>
+                <a href="{{ route('admin.guide') }}" target="_blank" rel="noopener" class="hidden rounded-2xl bg-white px-3.5 py-2.5 text-xs font-medium text-brand-700 shadow-soft hover:bg-brand-50 lg:block" title="Panduan penggunaan (PDF)">Panduan (PDF)</a>
                 <div class="flex items-center gap-3">
                     <div class="hidden text-right sm:block">
                         <p class="text-sm font-medium text-slate-700">{{ $user->name }}</p>
