@@ -237,7 +237,7 @@
     </main>
 </div>
 </div>
-<footer class="mt-6 flex items-center justify-center gap-2 text-xs text-brand-800/70"><img src="{{ asset('images/logo-unand.png') }}" alt="" class="h-5 w-5"> UPT Perpustakaan Universitas Andalas <span aria-hidden="true">·</span> <a href="{{ asset('panduan/Panduan_Unggah_Karya_Ilmiah.pdf') }}" target="_blank" rel="noopener" class="underline hover:text-brand-700">Panduan (PDF)</a></footer>
+<footer class="mt-6 flex items-center justify-center gap-2 text-xs text-brand-800/70"><img src="{{ asset('images/logo-unand.png') }}" alt="" class="h-5 w-5"> UPT Perpustakaan Universitas Andalas</footer>
 </div>
 </body>
 </html>

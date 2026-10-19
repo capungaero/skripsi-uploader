@@ -6,6 +6,7 @@ use App\Jobs\CheckSubmissionPdf;
 use App\Models\ActivityLog;
 use App\Models\FormConfig;
 use App\Models\Submission;
+use App\Models\User;
 use App\Services\SubmissionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -105,10 +106,13 @@ class UploadTest extends TestCase
         $this->assertContains('Spesialis', collect($form['fields'])->firstWhere('key', 'jenjang')['options']);
     }
 
-    public function test_user_guide_pdf_is_published_and_linked(): void
+    public function test_user_guide_pdf_is_linked_for_admins_only(): void
     {
         $this->assertFileExists(public_path('panduan/Panduan_Unggah_Karya_Ilmiah.pdf'));
-        $this->get('/')->assertOk()->assertSee('panduan/Panduan_Unggah_Karya_Ilmiah.pdf', false);
+        $this->get('/')->assertOk()->assertDontSee('panduan/Panduan_Unggah_Karya_Ilmiah.pdf', false);
+
+        $this->actingAs(User::create(['name' => 'A', 'email' => 'a@t.id', 'password' => 'password-123456', 'role' => 'verifikator', 'is_active' => true]));
+        $this->get('/admin')->assertOk()->assertSee('panduan/Panduan_Unggah_Karya_Ilmiah.pdf', false);
     }
 
     public function test_jenjang_is_required_from_the_fixed_options_and_stored(): void
