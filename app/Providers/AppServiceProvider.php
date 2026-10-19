@@ -8,6 +8,7 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
@@ -21,6 +22,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        // Timestamps are stored in UTC; staff read them in local time (WIB).
+        Carbon::macro('wib', fn (string $format = 'd/m/Y H:i') => $this->copy()->timezone(config('skripsi.timezone'))->format($format));
+
         // Behind a reverse proxy that mounts the app under a subpath (e.g. /skripsi_upload) and
         // strips that prefix before forwarding, the request itself looks like it's at "/" — so
         // url()/asset() must be forced to APP_URL instead of being inferred from the request.

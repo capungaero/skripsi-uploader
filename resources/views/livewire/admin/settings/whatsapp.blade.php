@@ -18,7 +18,7 @@
             <div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-surface p-4">
                 <div>
                     <p class="font-medium text-slate-800">{{ $session['pushName'] ?? 'WhatsApp' }}</p>
-                    <p class="text-sm text-slate-500">+{{ $session['phone'] ?? '-' }}@if (! empty($session['connectedAt'])) · tersambung sejak {{ \Illuminate\Support\Carbon::parse($session['connectedAt'])->timezone(config('app.timezone'))->format('d/m/Y H:i') }}@endif</p>
+                    <p class="text-sm text-slate-500">+{{ $session['phone'] ?? '-' }}@if (! empty($session['connectedAt'])) · tersambung sejak {{ \Illuminate\Support\Carbon::parse($session['connectedAt'])->wib('d/m/Y H:i') }}@endif</p>
                 </div>
                 <button type="button" wire:click="disconnect" wire:confirm="Putuskan nomor ini? Notifikasi berhenti sampai nomor dihubungkan lagi." class="btn-secondary text-red-600">Putuskan nomor</button>
             </div>

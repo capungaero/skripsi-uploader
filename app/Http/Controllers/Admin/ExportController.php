@@ -33,7 +33,7 @@ class ExportController extends Controller
                         $s->nim, $s->nama, $s->extra['email'] ?? null, $s->faculty?->name, $s->programName(), $s->extra['jenjang'] ?? null,
                         $s->academic_year, $s->judul, $s->no_wa,
                         $s->adminStatusLabel(), $s->ai_score, implode(' | ', $s->rejection_reasons ?? []),
-                        $s->admin_note, $s->verifier?->name, $s->created_at->format('Y-m-d H:i'),
+                        $s->admin_note, $s->verifier?->name, $s->created_at->wib('Y-m-d H:i'),
                         $s->cloud_path, $s->cloud_url, $s->share_url, $dspace->handleUrl($s->dspace_handle),
                     ]));
                 }

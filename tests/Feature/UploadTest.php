@@ -118,6 +118,16 @@ class UploadTest extends TestCase
         $this->get('/admin/panduan')->assertOk()->assertHeader('Content-Type', 'application/pdf');
     }
 
+    public function test_admin_pages_show_times_in_wib_not_utc(): void
+    {
+        $submission = $this->stagedSubmission();
+        $submission->forceFill(['created_at' => '2026-10-19 08:21:00'])->save(); // stored in UTC
+        $this->actingAs(User::create(['name' => 'A', 'email' => 'a@t.id', 'password' => 'password-123456', 'role' => 'verifikator', 'is_active' => true]));
+
+        $this->get('/admin/submissions')->assertOk()->assertSee('19/10/2026 15:21')->assertDontSee('19/10/2026 08:21');
+        $this->get(route('admin.submissions.show', $submission))->assertOk()->assertSee('19/10/2026 15:21');
+    }
+
     public function test_jenjang_is_required_from_the_fixed_options_and_stored(): void
     {
         $this->postJson('/api/submissions', $this->uploadPayload(['jenjang' => '']))

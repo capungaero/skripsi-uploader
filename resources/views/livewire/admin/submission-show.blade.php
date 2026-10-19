@@ -34,7 +34,7 @@
                         <div class="{{ strlen((string) $value) > 80 ? 'sm:col-span-2' : '' }}"><dt class="text-xs text-slate-500">{{ $label }}</dt><dd class="whitespace-pre-line">{{ $value }}</dd></div>
                     @endforeach
                     <div><dt class="text-xs text-slate-500">File</dt><dd>{{ $s->original_filename }} · {{ number_format($s->file_size / 1048576, 1) }} MB · {{ $s->page_count ?? '?' }} hlm</dd></div>
-                    <div><dt class="text-xs text-slate-500">Diunggah</dt><dd>{{ $s->created_at->format('d/m/Y H:i') }}</dd></div>
+                    <div><dt class="text-xs text-slate-500">Diunggah</dt><dd>{{ $s->created_at->wib('d/m/Y H:i') }}</dd></div>
                     <div class="sm:col-span-2"><dt class="text-xs text-slate-500">Cloud</dt>
                         <dd>
                             @if ($s->cloud_file_id)
@@ -54,7 +54,7 @@
                     @if ($s->kliring_status)
                         <div class="sm:col-span-2"><dt class="text-xs text-slate-500">Kliring perpustakaan</dt>
                             <dd>
-                                {{ $s->kliringLabel() }}{{ $s->kliring_at ? ' · '.$s->kliring_at->format('d/m/Y H:i') : '' }}
+                                {{ $s->kliringLabel() }}{{ $s->kliring_at ? ' · '.$s->kliring_at->wib('d/m/Y H:i') : '' }}
                                 @if ($s->kliring_error && $s->kliring_status !== 'done')<span class="text-xs text-slate-500">— {{ $s->kliring_error }}</span>@endif
                                 @if (in_array($s->kliring_status, ['failed', 'waiting_login', 'waiting_request']))
                                     <button wire:click="retryKliring" class="ml-2 text-xs text-brand-700 underline">Coba lagi</button>
@@ -76,7 +76,7 @@
                 @forelse ($s->checks as $check)
                     <div class="mb-4 last:mb-0">
                         <p class="mb-2 text-xs text-slate-500">
-                            {{ $check->created_at->format('d/m/Y H:i') }} · {{ $check->model ?? '-' }}
+                            {{ $check->created_at->wib('d/m/Y H:i') }} · {{ $check->model ?? '-' }}
                             @if ($check->duration_ms) · {{ number_format($check->duration_ms / 1000, 1) }} dtk @endif
                             @unless ($check->error) · skor rata-rata <strong>{{ $check->overall_score }}</strong> · {{ $check->passed ? 'LULUS' : 'TIDAK LULUS' }} @endunless
                         </p>
@@ -133,7 +133,7 @@
                 @if ($reviewFile)
                     <div class="rounded-2xl bg-amber-50 p-3 text-sm text-amber-900">
                         <p class="font-medium">PDF disimpan untuk evaluasi sistem</p>
-                        <p class="mt-0.5 text-xs text-amber-800">Disimpan {{ $reviewFile->timezone(config('skripsi.timezone'))->format('d/m/Y H:i') }}. Hapus setelah evaluasi manual selesai.</p>
+                        <p class="mt-0.5 text-xs text-amber-800">Disimpan {{ $reviewFile->wib('d/m/Y H:i') }}. Hapus setelah evaluasi manual selesai.</p>
                         <div class="mt-2 flex flex-wrap items-center gap-3">
                             <a href="{{ route('admin.submissions.file', $s) }}" target="_blank" rel="noopener" class="btn-secondary text-xs">Buka PDF</a>
                             <button type="button" wire:click="deleteReviewFile" wire:confirm="Hapus file PDF ini secara permanen? Tidak bisa dikembalikan." class="text-xs text-red-600 underline">Hapus file</button>
@@ -148,7 +148,7 @@
                     </div>
                 @endif
                 @if ($s->verifier)
-                    <p class="text-xs text-slate-500">Diverifikasi oleh {{ $s->verifier->name }} · {{ $s->verified_at?->format('d/m/Y H:i') }}</p>
+                    <p class="text-xs text-slate-500">Diverifikasi oleh {{ $s->verifier->name }} · {{ $s->verified_at?->wib('d/m/Y H:i') }}</p>
                 @endif
                 @if ($s->admin_note && ! in_array($s->status, ['ai_accepted']))
                     <p class="text-sm"><span class="text-xs text-slate-500">Catatan:</span> {{ $s->admin_note }}</p>
@@ -167,7 +167,7 @@
                     <h2 class="mb-2 font-semibold">Unggahan lain NIM ini</h2>
                     <ul class="space-y-1 text-sm">
                         @foreach ($history as $h)
-                            <li><a href="{{ route('admin.submissions.show', $h) }}" wire:navigate class="hover:underline">{{ $h->created_at->format('d/m/Y') }}</a> · @include('livewire.admin.partials.status-badge', ['submission' => $h])</li>
+                            <li><a href="{{ route('admin.submissions.show', $h) }}" wire:navigate class="hover:underline">{{ $h->created_at->wib('d/m/Y') }}</a> · @include('livewire.admin.partials.status-badge', ['submission' => $h])</li>
                         @endforeach
                     </ul>
                 </section>
@@ -179,7 +179,7 @@
                     @foreach ($s->logs as $log)
                         <li>
                             <p><span class="font-medium">{{ $log->label() }}</span> · {{ $log->actor_label ?? $log->actor_type }}</p>
-                            <p class="text-slate-500">{{ $log->created_at->format('d/m/Y H:i:s') }}</p>
+                            <p class="text-slate-500">{{ $log->created_at->wib('d/m/Y H:i:s') }}</p>
                         </li>
                     @endforeach
                 </ol>

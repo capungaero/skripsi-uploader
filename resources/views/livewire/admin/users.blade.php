@@ -14,7 +14,7 @@
                     <td class="px-4 py-2">{{ $u->email }}</td>
                     <td class="px-4 py-2">{{ \App\Models\User::ROLES[$u->role] ?? $u->role }}</td>
                     <td class="px-4 py-2">{{ $u->is_active ? 'Aktif' : 'Nonaktif' }}</td>
-                    <td class="px-4 py-2 text-xs text-slate-500">{{ $u->last_login_at?->format('d/m/Y H:i') ?? '-' }}</td>
+                    <td class="px-4 py-2 text-xs text-slate-500">{{ $u->last_login_at?->wib('d/m/Y H:i') ?? '-' }}</td>
                     <td class="px-4 py-2"><button wire:click="edit({{ $u->id }})" class="text-xs text-brand-700 underline">Ubah</button></td>
                 </tr>
             @endforeach

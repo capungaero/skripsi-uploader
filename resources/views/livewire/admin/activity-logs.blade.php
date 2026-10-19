@@ -20,7 +20,7 @@
             <tbody class="divide-y divide-slate-100 align-top">
             @forelse ($logs as $log)
                 <tr>
-                    <td class="whitespace-nowrap px-3 py-2 text-xs">{{ $log->created_at->format('d/m/Y H:i:s') }}</td>
+                    <td class="whitespace-nowrap px-3 py-2 text-xs">{{ $log->created_at->wib('d/m/Y H:i:s') }}</td>
                     <td class="px-3 py-2 text-xs"><span class="text-slate-400">{{ $log->actor_type }}</span><br>{{ $log->actor_label }}</td>
                     <td class="px-3 py-2 font-mono text-xs">{{ $log->action }}</td>
                     <td class="px-3 py-2 text-xs">

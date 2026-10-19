@@ -58,7 +58,7 @@
                     <td class="max-w-xs px-3 py-2 text-xs"><span class="line-clamp-2">{{ $s->judul }}</span></td>
                     <td class="px-3 py-2 tabular-nums">{{ $s->ai_score ?? '-' }}</td>
                     <td class="px-3 py-2">@include('livewire.admin.partials.status-badge', ['submission' => $s])</td>
-                    <td class="whitespace-nowrap px-3 py-2 text-xs text-slate-500">{{ $s->created_at->format('d/m/Y H:i') }}</td>
+                    <td class="whitespace-nowrap px-3 py-2 text-xs text-slate-500">{{ $s->created_at->wib('d/m/Y H:i') }}</td>
                 </tr>
             @empty
                 <tr><td colspan="7" class="px-3 py-10 text-center text-slate-500">Tidak ada data.</td></tr>
