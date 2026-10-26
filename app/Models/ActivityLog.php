@@ -40,6 +40,8 @@ class ActivityLog extends Model
         'kliring.retry_requested' => 'Ulang approve kliring',
         'wa.sent' => 'WhatsApp terkirim',
         'wa.failed' => 'WhatsApp gagal',
+        'wa.connect_requested' => 'Hubungkan nomor WhatsApp diminta',
+        'wa.disconnected' => 'Nomor WhatsApp diputus',
         'attempts.reset' => 'Jatah percobaan direset',
         'submission.restored' => 'Dipulihkan ke antrean verifikasi',
         'login.code_issued' => 'Kode login dikirim ke mahasiswa',

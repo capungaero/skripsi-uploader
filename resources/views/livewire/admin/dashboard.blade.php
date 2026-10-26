@@ -25,7 +25,7 @@
         <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_260px]">
 
             {{-- Overview --}}
-            <section class="card-violet relative overflow-hidden p-5 sm:p-6" wire:key="overview-{{ $range }}-{{ $offset }}" x-data="{ sel: {{ $n - 1 }}, pts: @js($chart) }">
+            <section class="card-violet relative overflow-hidden p-5 sm:p-6" wire:key="overview-{{ $range }}-{{ $offset }}" x-data="{ sel: {{ ($range === 'day' && $offset === 0) ? (int) now(config('skripsi.timezone'))->format('G') : $n - 1 }}, pts: @js($chart) }">
                 <div class="flex items-center justify-between gap-3">
                     <h2 class="text-lg font-semibold">Ringkasan Unggahan</h2>
                     <select wire:model.live="year" aria-label="Tahun akademik"

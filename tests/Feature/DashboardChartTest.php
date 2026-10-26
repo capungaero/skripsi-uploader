@@ -45,6 +45,13 @@ class DashboardChartTest extends TestCase
         return $t->viewData('series')['points'];
     }
 
+    public function test_hour_view_opens_on_the_current_hour_not_the_end_of_the_day(): void
+    {
+        // now is 10:30 WIB
+        Livewire::test(Dashboard::class)->call('setRange', 'day')->assertSeeHtml('sel: 10,');
+        Livewire::test(Dashboard::class)->call('setRange', 'day')->call('step', -1)->assertSeeHtml('sel: 23,');
+    }
+
     public function test_month_view_is_still_the_default_with_twelve_points(): void
     {
         $t = Livewire::test(Dashboard::class);
