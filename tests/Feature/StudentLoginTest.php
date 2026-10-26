@@ -150,6 +150,17 @@ class StudentLoginTest extends TestCase
             ['owa.test/api/sessions/s1/contacts/*' => Http::response(['contactId' => '99@lid', 'phone' => '6285111222333'])]);
 
         $this->assertSame('6285111222333', StudentLogin::firstOrFail()->phone);
+        Queue::assertPushed(SendLoginReply::class, fn ($job) => $job->chatId === '6285111222333@c.us', 'the reply goes to the real number, not the privacy id');
+    }
+
+    public function test_when_the_number_cannot_be_resolved_the_reply_still_goes_to_the_chat_and_the_form_keeps_the_number_field_open(): void
+    {
+        $this->poll([$this->stored('kliring_2011012345', ['chatId' => '99@lid', 'from' => '99'])],
+            ['owa.test/api/sessions/s1/contacts/*' => Http::response(['contactId' => '99@lid', 'phone' => null])]);
+
+        $login = StudentLogin::firstOrFail();
+        $this->assertNull($login->phone);
+        $this->assertNull($login->localPhone());
         Queue::assertPushed(SendLoginReply::class, fn ($job) => $job->chatId === '99@lid');
     }
 

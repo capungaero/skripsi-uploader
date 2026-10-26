@@ -69,35 +69,38 @@ class StudentLogins
         if (! $parsed || $chatId === '') {
             return 'ignored';
         }
-        if (isset($parsed['help'])) {
-            $this->reply($chatId, (string) $this->settings->get('wa.tpl.login_help'));
 
-            return 'help';
-        }
-
+        // WhatsApp usually reports a privacy id (@lid) as the chat; replies go to the real number, which is the reliable address.
         $phone = $this->senderPhone($message, $chatId);
+        $target = $phone ? $phone.'@c.us' : $chatId;
         $key = 'wa-login:'.($phone ?? $chatId);
         if (RateLimiter::tooManyAttempts($key, self::REQUESTS_PER_HOUR)) {
             // Tell them once per hour, then stay silent so a flood of messages never turns into a flood of replies.
             if (Cache::add('wa-login-limited:'.($phone ?? $chatId), 1, 3600)) {
-                $this->reply($chatId, "Anda sudah meminta kode beberapa kali. Gunakan kode terakhir yang dikirim, atau coba lagi dalam 1 jam.\n\n— Perpustakaan Universitas Andalas");
+                $this->reply($target, "Anda sudah meminta kode beberapa kali. Gunakan kode terakhir yang dikirim, atau coba lagi dalam 1 jam.\n\n— Perpustakaan Universitas Andalas");
             }
 
             return 'limited';
         }
         RateLimiter::hit($key, 3600);
 
+        if (isset($parsed['help'])) {
+            $this->reply($target, (string) $this->settings->get('wa.tpl.login_help'));
+
+            return 'help';
+        }
+
         $nim = $parsed['nim'];
         $state = $this->submissions->uploadState($nim);
         if (! $state['allowed']) {
-            $this->reply($chatId, "Halo, NIM {$nim} belum bisa mengunggah.\n\n{$state['message']}\n\n— Perpustakaan Universitas Andalas");
+            $this->reply($target, "Halo, NIM {$nim} belum bisa mengunggah.\n\n{$state['message']}\n\n— Perpustakaan Universitas Andalas");
             ActivityLogger::system('login.refused', null, ['nim' => $nim]);
 
             return 'refused';
         }
 
         $code = $this->issue($nim, $phone);
-        $this->reply($chatId, strtr((string) $this->settings->get('wa.tpl.login_code'), [
+        $this->reply($target, strtr((string) $this->settings->get('wa.tpl.login_code'), [
             '{nim}' => $nim,
             '{kode}' => $this->format($code),
             '{menit}' => (string) $this->codeMinutes(),
