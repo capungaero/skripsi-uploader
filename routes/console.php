@@ -85,6 +85,19 @@ Artisan::command('app:cleanup-student-logins', function (\App\Services\StudentLo
     $this->info('Removed '.$logins->purge().' expired login code(s).');
 })->purpose('Delete expired student login codes and sessions');
 
+Artisan::command('app:wa-login-poll', function (\App\Services\WhatsApp\LoginInbox $inbox) {
+    if (! $inbox->active()) {
+        return;
+    }
+    // schedule:run starts this once a minute: keep looking every few seconds so a student gets the code quickly.
+    $until = microtime(true) + 55;
+    do {
+        $inbox->poll();
+        sleep(4);
+    } while (microtime(true) < $until);
+})->purpose('Answer "kliring_NIM" WhatsApp messages with a login code');
+
+Schedule::command('app:wa-login-poll')->everyMinute()->withoutOverlapping(3)->runInBackground();
 Schedule::command('app:cleanup-staging')->hourly();
 Schedule::command('app:cleanup-student-logins')->dailyAt('03:00');
 Schedule::command('app:cleanup-rejected')->dailyAt('02:00');

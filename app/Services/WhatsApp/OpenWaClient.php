@@ -163,54 +163,22 @@ class OpenWaClient
         return $response->ok() ? ($response->json('phone') ?: null) : null;
     }
 
-    /** Where OpenWA must deliver incoming messages. */
-    public function webhookUrl(): string
-    {
-        return url('/api/wa/webhook');
-    }
-
-    /** The registered webhook that points at this app, or null. */
-    public function webhook(): ?array
-    {
-        $id = $this->settings->get('wa.openwa_session');
-        if (! $id) {
-            return null;
-        }
-        $list = $this->check($this->http()->get($this->api("sessions/{$id}/webhooks")), 'daftar webhook')->json();
-        foreach ((array) ($list['data'] ?? $list) as $hook) {
-            if (is_array($hook) && ($hook['url'] ?? null) === $this->webhookUrl()) {
-                return $hook;
-            }
-        }
-
-        return null;
-    }
-
-    /** (Re)create the webhook for incoming messages, signed with $secret. Returns the new webhook. */
-    public function registerWebhook(string $secret): array
+    /**
+     * Text messages the number received since $sinceMs (epoch milliseconds), oldest order not guaranteed.
+     * Reads OpenWA's own message store; nothing is asked from WhatsApp.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function incomingTexts(int $sinceMs): array
     {
         $id = $this->settings->get('wa.openwa_session');
         if (! $id) {
-            throw new \RuntimeException('WhatsApp belum dihubungkan: scan QR di Pengaturan → WhatsApp.');
+            return [];
         }
-        while ($old = $this->webhook()) {
-            $this->check($this->http()->delete($this->api("sessions/{$id}/webhooks/{$old['id']}")), 'hapus webhook lama');
-        }
+        $query = ['direction' => 'incoming', 'type' => 'text', 'since' => $sinceMs, 'orderBy' => 'timestamp', 'limit' => 100, 'inlineMedia' => 'false'];
+        $json = $this->check($this->http()->get($this->api("sessions/{$id}/messages"), $query), 'baca pesan masuk')->json();
 
-        return $this->check($this->http()->post($this->api("sessions/{$id}/webhooks"), [
-            'url' => $this->webhookUrl(),
-            'events' => ['message.received'],
-            'secret' => $secret,
-        ]), 'daftarkan webhook')->json();
-    }
-
-    /** Ask OpenWA to POST a test event to the webhook: [reachable, statusCode|error]. */
-    public function testWebhook(string $webhookId): array
-    {
-        $id = $this->settings->get('wa.openwa_session');
-        $json = $this->check($this->http()->post($this->api("sessions/{$id}/webhooks/{$webhookId}/test")), 'tes webhook')->json();
-
-        return [(bool) ($json['success'] ?? false), $json['statusCode'] ?? ($json['error'] ?? null)];
+        return array_values(array_filter((array) ($json['messages'] ?? []), 'is_array'));
     }
 
     private function remember(string $id): string

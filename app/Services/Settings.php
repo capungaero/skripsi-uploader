@@ -22,7 +22,6 @@ class Settings
         'wa.headers', 'wa.openwa_key',
         'dspace.password',
         'kliring.session',
-        'login.webhook_secret',
     ];
 
     public const DEFAULTS = [
@@ -86,8 +85,8 @@ class Settings
         'login.wa_number' => null, // the library number shown on the page, e.g. 6281234567890
         'login.code_minutes' => 30,
         'login.session_hours' => 6,
-        'login.webhook_secret' => null,
-        'login.webhook_id' => null,
+        'login.listen' => false, // answer "kliring_NIM" messages with a login code (also needed when login is required)
+        'login.poll_cursor' => null, // epoch ms of the newest inbox message already handled
         'wa.tpl.login_code' => "Kode masuk unggah Karya Ilmiah untuk NIM *{nim}*:
 
 *{kode}*

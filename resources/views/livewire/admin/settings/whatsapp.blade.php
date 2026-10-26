@@ -117,26 +117,24 @@
 
         <div class="card space-y-4 p-5">
             <h2 class="font-semibold">Login mahasiswa lewat WhatsApp</h2>
-            <p class="text-xs leading-relaxed text-slate-500">Mahasiswa mengirim pesan <code>kliring_NIM</code> ke nomor perpustakaan lebih dulu, lalu sistem membalas dengan kode masuk. Karena mahasiswa yang memulai percakapan, nomor perpustakaan lebih aman dari pemblokiran. Balasan hanya dikirim untuk pesan berawalan <code>kliring</code>.</p>
+            <p class="text-xs leading-relaxed text-slate-500">Mahasiswa mengirim pesan <code>kliring_NIM</code> ke nomor perpustakaan lebih dulu, lalu sistem membalas dengan kode masuk. Karena mahasiswa yang memulai percakapan, nomor perpustakaan lebih aman dari pemblokiran.</p>
 
-            <div class="rounded-2xl bg-slate-50 p-3 text-sm">
-                <p class="font-medium">Webhook pesan masuk</p>
+            <label class="flex items-start gap-2 text-sm">
+                <input type="checkbox" wire:model="form.login__listen" class="mt-0.5">
+                <span><strong>Balas pesan <code>kliring_NIM</code> dengan kode masuk.</strong><br>
+                    <span class="text-xs text-slate-500">Aplikasi memeriksa pesan masuk setiap beberapa detik dan hanya membalas pesan yang berawalan <code>kliring</code>. Percakapan lain tidak disentuh.</span></span>
+            </label>
+            <div class="rounded-2xl bg-slate-50 p-3 text-xs text-slate-600">
                 @if (! $hasSession)
-                    <p class="mt-1 text-xs text-slate-500">Hubungkan nomor WhatsApp dulu.</p>
+                    Hubungkan nomor WhatsApp dulu.
+                @elseif (! ($form['login__listen'] ?? false) && ! ($form['login__enabled'] ?? false))
+                    Pemantau pesan masuk mati.
+                @elseif ($inbox['error'])
+                    <span class="text-red-600">Gagal membaca pesan masuk: {{ $inbox['error'] }}</span>
+                @elseif ($inbox['last'])
+                    Pemantau aktif · terakhir memeriksa {{ $inbox['last']->wib('H:i:s') }} WIB.
                 @else
-                    <p class="mt-1 text-xs">
-                        @if ($webhook)
-                            <span class="text-emerald-700">Terdaftar{{ ($webhook['active'] ?? true) ? '' : ' (nonaktif)' }}</span>
-                            @if (! empty($webhook['lastTriggeredAt'])) · pesan terakhir diterima {{ \Illuminate\Support\Carbon::parse($webhook['lastTriggeredAt'])->wib() }} WIB @endif
-                        @else
-                            <span class="text-amber-700">Belum terdaftar: pesan dari mahasiswa belum sampai ke aplikasi.</span>
-                        @endif
-                    </p>
-                    <div class="mt-2 flex flex-wrap gap-2">
-                        <button type="button" wire:click="registerWebhook" wire:loading.attr="disabled" class="btn-secondary text-xs">{{ $webhook ? 'Daftarkan ulang' : 'Daftarkan webhook' }}</button>
-                        @if ($webhook)<button type="button" wire:click="testWebhook" wire:loading.attr="disabled" class="btn-secondary text-xs">Tes webhook</button>@endif
-                    </div>
-                    @if ($webhookResult)<p class="mt-2 text-xs text-slate-600">{{ $webhookResult }}</p>@endif
+                    Pemantau akan mulai dalam semenit setelah pengaturan disimpan.
                 @endif
             </div>
 
@@ -159,7 +157,7 @@
             <label class="flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm">
                 <input type="checkbox" wire:model="form.login__enabled" class="mt-0.5">
                 <span><strong>Wajibkan login sebelum mengunggah.</strong><br>
-                    <span class="text-xs text-amber-800">Aktifkan setelah webhook terdaftar dan Anda mencoba sendiri: kirim <code>kliring_NIM</code> dari HP ke nomor perpustakaan, lalu pastikan kode diterima. Selama belum diaktifkan, halaman unggah tetap terbuka seperti biasa.</span></span>
+                    <span class="text-xs text-amber-800">Aktifkan setelah pemantau menyala dan Anda mencoba sendiri: kirim <code>kliring_NIM</code> dari HP ke nomor perpustakaan, lalu pastikan kode diterima. Selama belum diaktifkan, halaman unggah tetap terbuka seperti biasa.</span></span>
             </label>
 
             <div>

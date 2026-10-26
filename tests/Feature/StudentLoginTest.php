@@ -3,13 +3,18 @@
 namespace Tests\Feature;
 
 use App\Jobs\SendLoginReply;
+use App\Livewire\Admin\Settings\WhatsApp;
 use App\Models\StudentLogin;
 use App\Models\Submission;
+use App\Models\User;
 use App\Services\StudentLogins;
+use App\Services\WhatsApp\LoginInbox;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
+use Illuminate\Support\Str;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class StudentLoginTest extends TestCase
@@ -18,32 +23,27 @@ class StudentLoginTest extends TestCase
 
     protected $seed = true;
 
-    private const SECRET = 'webhook-secret-for-tests-123';
-
     protected function setUp(): void
     {
         parent::setUp();
         Queue::fake();
         Cache::flush();
-        $this->settings(['login.webhook_secret' => self::SECRET]);
+        $this->settings(['wa.openwa_url' => 'https://owa.test', 'wa.openwa_key' => 'k', 'wa.openwa_session' => 's1', 'login.listen' => true]);
     }
 
-    /** POST a signed OpenWA delivery exactly like the gateway does (signature over the raw body). */
-    private function webhook(array $message, string $event = 'message.received', ?string $key = null, ?string $secret = self::SECRET)
+    /** A message as OpenWA stores it. */
+    private function stored(string $body, array $extra = []): array
     {
-        $raw = json_encode(['event' => $event, 'sessionId' => 's1', 'idempotencyKey' => $key ?? 'k'.uniqid(), 'data' => $message]);
-        $server = ['CONTENT_TYPE' => 'application/json', 'HTTP_ACCEPT' => 'application/json'];
-        if ($secret !== null) {
-            $server['HTTP_X_OPENWA_SIGNATURE'] = 'sha256='.hash_hmac('sha256', $raw, $secret);
-        }
-
-        return $this->call('POST', '/api/wa/webhook', [], [], [], $server, $raw);
+        return $extra + ['id' => (string) Str::uuid(), 'chatId' => '6281234567890@c.us', 'from' => '6281234567890', 'body' => $body,
+            'type' => 'text', 'direction' => 'incoming', 'timestamp' => now()->getTimestamp()];
     }
 
-    private function incoming(string $body, array $extra = []): array
+    /** Let the inbox of the library number hold these messages, then look at it once. */
+    private function poll(array $messages, array $other = []): int
     {
-        return $extra + ['id' => 'm1', 'chatId' => '6281234567890@c.us', 'from' => '6281234567890@c.us', 'body' => $body,
-            'type' => 'text', 'fromMe' => false, 'isGroup' => false, 'kind' => 'individual'];
+        Http::fake($other + ['owa.test/api/sessions/s1/messages*' => Http::response(['messages' => $messages, 'total' => count($messages)])]);
+
+        return app(LoginInbox::class)->poll();
     }
 
     public function test_only_kliring_messages_are_recognised(): void
@@ -58,18 +58,17 @@ class StudentLoginTest extends TestCase
         $this->assertNull(StudentLogins::parse('terima kasih'));
     }
 
-    public function test_the_webhook_refuses_unsigned_or_wrongly_signed_requests(): void
+    public function test_the_inbox_is_read_from_openwa_incoming_text_only(): void
     {
-        $this->webhook($this->incoming('kliring_2011012345'), secret: null)->assertUnauthorized();
-        $this->webhook($this->incoming('kliring_2011012345'), secret: 'another-secret-entirely-1')->assertUnauthorized();
+        $this->poll([]);
 
-        $this->assertSame(0, StudentLogin::count());
-        Queue::assertNothingPushed();
+        Http::assertSent(fn ($r) => $r->hasHeader('X-API-Key', 'k') && str_contains($r->url(), '/api/sessions/s1/messages')
+            && $r['direction'] === 'incoming' && $r['type'] === 'text' && (int) $r['since'] > 0);
     }
 
     public function test_a_kliring_message_gets_a_one_time_code_back_on_whatsapp(): void
     {
-        $this->webhook($this->incoming('kliring_2011012345'))->assertOk()->assertJson(['result' => 'issued']);
+        $this->assertSame(1, $this->poll([$this->stored('kliring_2011012345')]));
 
         $login = StudentLogin::firstOrFail();
         $this->assertSame('2011012345', $login->nim);
@@ -82,14 +81,14 @@ class StudentLoginTest extends TestCase
         });
     }
 
-    public function test_other_messages_groups_and_own_messages_are_never_answered(): void
+    public function test_other_messages_groups_old_messages_and_media_are_never_answered(): void
     {
-        $this->webhook($this->incoming('terima kasih kak'))->assertOk();
-        $this->webhook($this->incoming('kliring_2011012345', ['fromMe' => true]))->assertOk();
-        $this->webhook($this->incoming('kliring_2011012345', ['isGroup' => true, 'kind' => 'group', 'chatId' => '123@g.us']))->assertOk();
-        $this->webhook($this->incoming('kliring_2011012345', ['type' => 'image']))->assertOk();
-        $this->webhook(['status' => 'x'], event: 'session.status')->assertOk();
-        $this->webhook([], event: 'test')->assertOk();
+        $this->poll([
+            $this->stored('terima kasih kak'),
+            $this->stored('kliring_2011012345', ['chatId' => '123@g.us', 'from' => '6281234567890']),
+            $this->stored('kliring_2011012345', ['type' => 'image']),
+            $this->stored('kliring_2011012345', ['timestamp' => now()->subHour()->getTimestamp()]),
+        ]);
 
         $this->assertSame(0, StudentLogin::count());
         Queue::assertNothingPushed();
@@ -97,28 +96,29 @@ class StudentLoginTest extends TestCase
 
     public function test_a_malformed_kliring_message_gets_the_help_text(): void
     {
-        $this->webhook($this->incoming('kliring'))->assertOk()->assertJson(['result' => 'help']);
+        $this->poll([$this->stored('kliring')]);
 
         $this->assertSame(0, StudentLogin::count());
         Queue::assertPushed(SendLoginReply::class, fn ($job) => str_contains($job->message, 'kliring_NIM'));
     }
 
-    public function test_a_redelivered_event_is_processed_once(): void
+    public function test_a_message_seen_twice_is_answered_once_and_only_new_ones_are_asked_for(): void
     {
-        $this->webhook($this->incoming('kliring_2011012345'), key: 'same')->assertOk()->assertJson(['result' => 'issued']);
-        $this->webhook($this->incoming('kliring_2011012345'), key: 'same')->assertOk()->assertJson(['ignored' => 'duplicate']);
+        $message = $this->stored('kliring_2011012345');
+        $this->poll([$message]);
+        $this->poll([$message]); // the window includes the second of the last message, so it comes back
 
         $this->assertSame(1, StudentLogin::count());
         Queue::assertPushed(SendLoginReply::class, 1);
+        $this->assertSame($message['timestamp'] * 1000, (int) $this->settings()->get('login.poll_cursor'));
+
+        $this->poll([]);
+        Http::assertSent(fn ($r) => (int) $r['since'] === $message['timestamp'] * 1000);
     }
 
     public function test_a_number_can_ask_for_five_codes_an_hour_then_gets_one_notice_and_silence(): void
     {
-        for ($i = 0; $i < 5; $i++) {
-            $this->webhook($this->incoming('kliring_2011012345'))->assertJson(['result' => 'issued']);
-        }
-        $this->webhook($this->incoming('kliring_2011012345'))->assertJson(['result' => 'limited']);
-        $this->webhook($this->incoming('kliring_2011012345'))->assertJson(['result' => 'limited']);
+        $this->poll(array_map(fn () => $this->stored('kliring_2011012345'), range(1, 8)));
 
         $this->assertSame(5, StudentLogin::count());
         Queue::assertPushed(SendLoginReply::class, 6); // five codes + a single "too many requests" notice
@@ -138,7 +138,7 @@ class StudentLoginTest extends TestCase
     {
         $this->stagedSubmission(['nim' => '2011012345', 'status' => Submission::AI_ACCEPTED]);
 
-        $this->webhook($this->incoming('kliring_2011012345'))->assertOk()->assertJson(['result' => 'refused']);
+        $this->poll([$this->stored('kliring_2011012345')]);
 
         $this->assertSame(0, StudentLogin::count());
         Queue::assertPushed(SendLoginReply::class, fn ($job) => str_contains($job->message, 'belum bisa mengunggah'));
@@ -146,13 +146,34 @@ class StudentLoginTest extends TestCase
 
     public function test_the_number_behind_a_privacy_id_is_looked_up(): void
     {
-        $this->settings(['wa.openwa_url' => 'https://owa.test', 'wa.openwa_key' => 'k', 'wa.openwa_session' => 's1']);
-        Http::fake(['owa.test/*' => Http::response(['contactId' => '99@lid', 'phone' => '6285111222333'])]);
-
-        $this->webhook($this->incoming('kliring_2011012345', ['chatId' => '99@lid', 'from' => '99@lid']))->assertJson(['result' => 'issued']);
+        $this->poll([$this->stored('kliring_2011012345', ['chatId' => '99@lid', 'from' => '99'])],
+            ['owa.test/api/sessions/s1/contacts/*' => Http::response(['contactId' => '99@lid', 'phone' => '6285111222333'])]);
 
         $this->assertSame('6285111222333', StudentLogin::firstOrFail()->phone);
         Queue::assertPushed(SendLoginReply::class, fn ($job) => $job->chatId === '99@lid');
+    }
+
+    public function test_the_inbox_only_runs_when_the_service_is_on(): void
+    {
+        $this->settings(['login.listen' => false, 'login.enabled' => false]);
+        $this->assertFalse(app(LoginInbox::class)->active());
+
+        $this->settings(['login.listen' => true]);
+        $this->assertTrue(app(LoginInbox::class)->active());
+
+        $this->settings(['login.listen' => false, 'login.enabled' => true]);
+        $this->assertTrue(app(LoginInbox::class)->active(), 'requiring login implies answering the code requests');
+
+        $this->settings(['wa.openwa_session' => null]);
+        $this->assertFalse(app(LoginInbox::class)->active());
+    }
+
+    public function test_a_gateway_error_is_remembered_for_the_admin_page_and_does_not_crash(): void
+    {
+        Http::fake(['owa.test/*' => Http::response(['message' => 'boom'], 500)]);
+
+        $this->assertSame(0, app(LoginInbox::class)->poll());
+        $this->assertStringContainsString('500', (string) Cache::get(LoginInbox::LAST_ERROR_KEY));
     }
 
     public function test_a_code_is_traded_for_a_session_once(): void
@@ -227,6 +248,25 @@ class StudentLoginTest extends TestCase
         StudentLogin::query()->update(['session_expires_at' => now()->subSecond()]);
 
         $this->postJson('/api/submissions', $this->uploadPayload(), ['Authorization' => 'Bearer '.$token])->assertUnauthorized();
+    }
+
+    public function test_the_admin_page_saves_the_login_options_and_shows_the_inbox_state(): void
+    {
+        $this->actingAs(User::create(['name' => 'A', 'email' => 'a@t.id', 'password' => 'password-123456', 'role' => 'superadmin', 'is_active' => true]));
+        Http::fake(['owa.test/*' => Http::response(['id' => 's1', 'status' => 'ready', 'phone' => '6281200000000'])]);
+
+        Livewire::test(WhatsApp::class)
+            ->assertSee('Login mahasiswa lewat WhatsApp')
+            ->set('form.login__listen', true)->set('form.login__enabled', true)
+            ->set('form.login__wa_number', '0812-0000-0000')->set('form.login__code_minutes', 20)
+            ->call('save')->assertHasNoErrors()
+            ->set('form.login__wa_number', 'abc')->call('save')->assertHasErrors('form.login__wa_number');
+
+        $settings = $this->settings();
+        $this->assertTrue($settings->bool('login.listen'));
+        $this->assertTrue($settings->bool('login.enabled'));
+        $this->assertSame('6281200000000', $settings->get('login.wa_number'));
+        $this->assertSame(20, $settings->int('login.code_minutes'));
     }
 
     public function test_expired_rows_are_purged(): void

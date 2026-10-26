@@ -5,9 +5,12 @@ namespace App\Livewire\Admin\Settings;
 use App\Services\ActivityLogger;
 use App\Services\Settings;
 use App\Services\SubmissionNotifier;
+use App\Services\WhatsApp\LoginInbox;
 use App\Services\WhatsApp\OpenWaClient;
 use App\Services\WhatsApp\WhatsAppSender;
 use App\Services\WhatsApp\WhatsAppThrottle;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\Title;
 
 /** Link the uploader's WhatsApp number by scanning a QR (OpenWA); a generic HTTP gateway stays available under "Lanjutan". */
@@ -25,17 +28,12 @@ class WhatsApp extends SettingsForm
 
     public ?string $error = null;
 
-    /** @var array<string, mixed>|null the webhook OpenWA has registered for incoming messages */
-    public ?array $webhook = null;
-
-    public ?string $webhookResult = null;
-
     protected function keys(): array
     {
         return array_merge(
             ['wa.enabled', 'wa.driver', 'wa.url', 'wa.method', 'wa.headers', 'wa.body_format', 'wa.body_template',
                 'wa.interval_min', 'wa.interval_max', 'wa.max_per_hour', 'wa.max_per_day', 'wa.window_start', 'wa.window_end',
-                'login.enabled', 'login.wa_number', 'login.code_minutes', 'login.session_hours', 'wa.tpl.login_code', 'wa.tpl.login_help'],
+                'login.listen', 'login.enabled', 'login.wa_number', 'login.code_minutes', 'login.session_hours', 'wa.tpl.login_code', 'wa.tpl.login_help'],
             array_map(fn ($e) => 'wa.tpl.'.$e, array_keys(SubmissionNotifier::EVENTS)),
         );
     }
@@ -64,7 +62,6 @@ class WhatsApp extends SettingsForm
             if (($this->session['status'] ?? null) === 'qr_ready') {
                 $this->qr = $client->qr();
             }
-            $this->webhook = $this->session ? $client->webhook() : null;
             // The number the page tells students to message: the linked number, unless the admin already set one.
             $settings = app(Settings::class);
             if (($this->session['status'] ?? null) === 'ready' && ! empty($this->session['phone']) && ! $settings->has('login.wa_number')) {
@@ -119,46 +116,14 @@ class WhatsApp extends SettingsForm
         $this->refresh();
     }
 
-    /** Tell OpenWA to deliver incoming messages to this app (needed for the WhatsApp login). */
-    public function registerWebhook(Settings $settings): void
-    {
-        $this->webhookResult = null;
-        try {
-            $client = app(OpenWaClient::class);
-            $secret = bin2hex(random_bytes(24));
-            $hook = $client->registerWebhook($secret);
-            $settings->setMany(['login.webhook_secret' => $secret, 'login.webhook_id' => $hook['id'] ?? null]);
-            ActivityLogger::admin('settings.updated', null, ['keys' => ['login.webhook']]);
-            [$ok, $detail] = $client->testWebhook((string) ($hook['id'] ?? ''));
-            $this->webhookResult = $ok
-                ? 'Webhook terdaftar dan aplikasi bisa dijangkau OpenWA (HTTP '.$detail.').'
-                : 'Webhook terdaftar, tetapi OpenWA belum bisa menjangkau aplikasi: '.mb_substr((string) $detail, 0, 200).'. Pastikan alamat aplikasi dapat dibuka dari internet.';
-        } catch (\Throwable $e) {
-            $this->webhookResult = 'Gagal mendaftarkan webhook: '.mb_substr($e->getMessage(), 0, 300);
-        }
-        $this->refresh();
-    }
-
-    public function testWebhook(): void
-    {
-        $this->webhookResult = null;
-        try {
-            if (! $this->webhook) {
-                $this->webhookResult = 'Webhook belum terdaftar.';
-
-                return;
-            }
-            [$ok, $detail] = app(OpenWaClient::class)->testWebhook((string) $this->webhook['id']);
-            $this->webhookResult = $ok ? 'Berhasil: aplikasi menjawab (HTTP '.$detail.').' : 'Gagal: '.mb_substr((string) $detail, 0, 200);
-        } catch (\Throwable $e) {
-            $this->webhookResult = 'Gagal: '.mb_substr($e->getMessage(), 0, 300);
-        }
-    }
-
     public function save(Settings $settings): void
     {
         $number = trim((string) ($this->form['login__wa_number'] ?? ''));
-        $this->form['login__wa_number'] = $number === '' ? null : WhatsAppSender::normalizePhone($number);
+        $this->form['login__wa_number'] = match (true) {
+            $number === '' => null,
+            preg_match('/\d/', $number) !== 1 => $number, // no digits at all: let validation reject it
+            default => WhatsAppSender::normalizePhone($number),
+        };
 
         $json = function ($attr, $value, $fail) {
             if ($value !== null && $value !== '' && ! is_array(json_decode($value, true))) {
@@ -228,6 +193,10 @@ class WhatsApp extends SettingsForm
             'hasSession' => $client->hasSession(),
             'usage' => $throttle->usage(),
             'timezone' => config('skripsi.timezone'),
+            'inbox' => [
+                'last' => ($t = Cache::get(LoginInbox::LAST_POLL_KEY)) ? Carbon::createFromTimestamp($t) : null,
+                'error' => Cache::get(LoginInbox::LAST_ERROR_KEY),
+            ],
         ]);
     }
 }
