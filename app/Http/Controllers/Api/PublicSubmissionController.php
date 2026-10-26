@@ -46,6 +46,11 @@ class PublicSubmissionController extends Controller
         $config = FormConfig::active()?->load('fields');
         abort_unless($config, 503, 'Pengunggahan sedang ditutup.');
 
+        // The student logged in with this NIM and WhatsApp number: whatever the form says, the upload is filed under them.
+        if ($login = $request->attributes->get('student_login')) {
+            $request->merge(['nim' => $login->nim] + ($login->phone ? ['no_wa' => $login->localPhone()] : []));
+        }
+
         $validated = Validator::make($request->all(), $this->schema->rules($config, $request->all()), [
             'file.max' => 'Ukuran file maksimal '.$this->schema->maxMb().' MB.',
             'file.mimes' => 'File harus berformat PDF.',

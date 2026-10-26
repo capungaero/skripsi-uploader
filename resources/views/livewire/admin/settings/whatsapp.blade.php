@@ -116,6 +116,64 @@
         </div>
 
         <div class="card space-y-4 p-5">
+            <h2 class="font-semibold">Login mahasiswa lewat WhatsApp</h2>
+            <p class="text-xs leading-relaxed text-slate-500">Mahasiswa mengirim pesan <code>kliring_NIM</code> ke nomor perpustakaan lebih dulu, lalu sistem membalas dengan kode masuk. Karena mahasiswa yang memulai percakapan, nomor perpustakaan lebih aman dari pemblokiran. Balasan hanya dikirim untuk pesan berawalan <code>kliring</code>.</p>
+
+            <div class="rounded-2xl bg-slate-50 p-3 text-sm">
+                <p class="font-medium">Webhook pesan masuk</p>
+                @if (! $hasSession)
+                    <p class="mt-1 text-xs text-slate-500">Hubungkan nomor WhatsApp dulu.</p>
+                @else
+                    <p class="mt-1 text-xs">
+                        @if ($webhook)
+                            <span class="text-emerald-700">Terdaftar{{ ($webhook['active'] ?? true) ? '' : ' (nonaktif)' }}</span>
+                            @if (! empty($webhook['lastTriggeredAt'])) · pesan terakhir diterima {{ \Illuminate\Support\Carbon::parse($webhook['lastTriggeredAt'])->wib() }} WIB @endif
+                        @else
+                            <span class="text-amber-700">Belum terdaftar: pesan dari mahasiswa belum sampai ke aplikasi.</span>
+                        @endif
+                    </p>
+                    <div class="mt-2 flex flex-wrap gap-2">
+                        <button type="button" wire:click="registerWebhook" wire:loading.attr="disabled" class="btn-secondary text-xs">{{ $webhook ? 'Daftarkan ulang' : 'Daftarkan webhook' }}</button>
+                        @if ($webhook)<button type="button" wire:click="testWebhook" wire:loading.attr="disabled" class="btn-secondary text-xs">Tes webhook</button>@endif
+                    </div>
+                    @if ($webhookResult)<p class="mt-2 text-xs text-slate-600">{{ $webhookResult }}</p>@endif
+                @endif
+            </div>
+
+            <div class="grid gap-3 sm:grid-cols-3">
+                <div class="sm:col-span-3">
+                    <label class="label">Nomor perpustakaan yang ditampilkan ke mahasiswa</label>
+                    <input wire:model="form.login__wa_number" class="field-input font-mono text-sm" placeholder="6281234567890">
+                    @error('form.login__wa_number')<p class="mt-1 text-xs text-red-600">Nomor tidak valid (contoh: 6281234567890).</p>@enderror
+                </div>
+                <div>
+                    <label class="label">Kode berlaku (menit)</label>
+                    <input type="number" min="1" max="240" wire:model="form.login__code_minutes" class="field-input text-sm">
+                </div>
+                <div>
+                    <label class="label">Sesi masuk berlaku (jam)</label>
+                    <input type="number" min="1" max="72" wire:model="form.login__session_hours" class="field-input text-sm">
+                </div>
+            </div>
+
+            <label class="flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm">
+                <input type="checkbox" wire:model="form.login__enabled" class="mt-0.5">
+                <span><strong>Wajibkan login sebelum mengunggah.</strong><br>
+                    <span class="text-xs text-amber-800">Aktifkan setelah webhook terdaftar dan Anda mencoba sendiri: kirim <code>kliring_NIM</code> dari HP ke nomor perpustakaan, lalu pastikan kode diterima. Selama belum diaktifkan, halaman unggah tetap terbuka seperti biasa.</span></span>
+            </label>
+
+            <div>
+                <label class="label">Pesan balasan berisi kode</label>
+                <textarea wire:model="form.wa__tpl__login_code" rows="6" class="field-input text-sm"></textarea>
+                <p class="mt-1 text-xs text-slate-500">Placeholder: <code>{nim} {kode} {menit} {link}</code></p>
+            </div>
+            <div>
+                <label class="label">Pesan bila format salah (mis. <code>kliring</code> tanpa NIM)</label>
+                <textarea wire:model="form.wa__tpl__login_help" rows="4" class="field-input text-sm"></textarea>
+            </div>
+        </div>
+
+        <div class="card space-y-4 p-5">
             <h2 class="font-semibold">Template pesan</h2>
             <p class="text-xs text-slate-500">Placeholder: <code>{nama} {nim} {judul} {alasan} {catatan} {sisa_percobaan} {link} {handle}</code>. Kosongkan untuk tidak mengirim pesan pada kejadian tersebut.</p>
             @foreach ($events as $event => $label)

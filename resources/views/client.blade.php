@@ -57,6 +57,49 @@
         </div>
     @else
 
+    {{-- Login with a code received over WhatsApp --}}
+    <section x-show="stage === 'login'" x-cloak class="card p-5 sm:p-8">
+        <div class="mb-6 flex items-center gap-3">
+            <span class="icon-badge"><x-icon name="form" class="h-6 w-6"/></span>
+            <div>
+                <h2 class="text-lg font-semibold text-slate-800">Masuk dengan WhatsApp</h2>
+                <p class="text-xs text-slate-400">Untuk mengunggah, nomor WhatsApp Anda diverifikasi dulu.</p>
+            </div>
+        </div>
+
+        <ol class="space-y-5 text-sm leading-relaxed">
+            <li class="flex gap-3">
+                <span class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-700">1</span>
+                <div>
+                    <p>Kirim pesan WhatsApp ke nomor perpustakaan<template x-if="schema.login.wa_number"><strong x-text="' +' + schema.login.wa_number"></strong></template>
+                        dengan isi <code class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">kliring_NIM</code>, contoh <code class="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[13px]">kliring_2011012345</code>.</p>
+                    <template x-if="schema.login.wa_link">
+                        <a :href="schema.login.wa_link" target="_blank" rel="noopener" class="btn-secondary mt-2 inline-flex text-xs">Buka WhatsApp</a>
+                    </template>
+                </div>
+            </li>
+            <li class="flex gap-3">
+                <span class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-700">2</span>
+                <p>Tunggu balasan berisi <strong>kode masuk</strong> (biasanya dalam beberapa detik). Kode berlaku <span x-text="schema.login.code_minutes"></span> menit.</p>
+            </li>
+            <li class="flex gap-3">
+                <span class="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-700">3</span>
+                <form @submit.prevent="login" class="w-full">
+                    <label class="label" for="login_code">Masukkan kode</label>
+                    <div class="flex flex-wrap gap-2">
+                        <input id="login_code" x-model="loginCode" autocomplete="one-time-code" autocapitalize="characters" maxlength="12"
+                               placeholder="XXXX-XXXX" class="field-input max-w-[12rem] font-mono tracking-widest uppercase">
+                        <button type="submit" :disabled="loggingIn" class="btn-primary">
+                            <span x-show="!loggingIn">Masuk</span><span x-show="loggingIn">Memeriksa…</span>
+                        </button>
+                    </div>
+                    <p x-show="loginError" x-text="loginError" class="mt-2 text-xs text-accent-600"></p>
+                </form>
+            </li>
+        </ol>
+        <p class="mt-6 rounded-2xl bg-slate-50 p-3 text-xs text-slate-500">Tidak ada pesan balasan? Pastikan format <strong>kliring_NIM</strong> benar tanpa spasi. Satu nomor WhatsApp dapat meminta kode paling banyak 5 kali per jam.</p>
+    </section>
+
     {{-- Form --}}
     <form x-show="stage === 'form'" x-cloak @submit.prevent="submit" class="card p-5 sm:p-8" novalidate>
         <div class="mb-6 flex items-center gap-3">
@@ -64,6 +107,10 @@
             <div>
                 <h2 class="text-lg font-semibold text-slate-800">Formulir unggah Karya Ilmiah</h2>
                 <p class="text-xs text-slate-400">Kolom bertanda <span class="text-accent-500">*</span> wajib diisi</p>
+            </div>
+            <div x-show="student" x-cloak class="ml-auto text-right text-xs text-slate-500">
+                Masuk sebagai <strong x-text="student && student.nim"></strong><br>
+                <button type="button" @click="logout" class="underline hover:text-brand-700">Keluar</button>
             </div>
         </div>
 
@@ -98,11 +145,12 @@
                         <input :id="fieldId(field.key)" :type="field.type" x-model="values[field.key]"
                                @blur="field.key === 'nim' ? checkNim() : validateField(field)"
                                :maxlength="field.max_length" :placeholder="field.placeholder"
-                               :inputmode="field.key === 'nim' ? 'numeric' : null"
-                               class="field-input" :class="errors[field.key] && 'ring-2 ring-accent-300'">
+                               :inputmode="field.key === 'nim' ? 'numeric' : null" :readonly="locked(field.key)"
+                               class="field-input" :class="(errors[field.key] && 'ring-2 ring-accent-300') || (locked(field.key) && 'bg-slate-100 text-slate-500')">
                     </template>
 
-                    <p x-show="field.help && !errors[field.key]" x-text="field.help" class="mt-1 text-xs text-slate-400"></p>
+                    <p x-show="locked(field.key)" class="mt-1 text-xs text-slate-400">Terisi otomatis dari login WhatsApp.</p>
+                    <p x-show="field.help && !errors[field.key] && !locked(field.key)" x-text="field.help" class="mt-1 text-xs text-slate-400"></p>
                     <p x-show="errors[field.key]" x-text="errors[field.key]" class="mt-1 text-xs text-accent-600"></p>
                     <template x-if="field.key === 'nim' && nimState">
                         <p class="mt-1.5 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs"

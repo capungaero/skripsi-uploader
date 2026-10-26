@@ -134,15 +134,83 @@ class OpenWaClient
 
     public function sendText(string $phone, string $message): Response
     {
+        return $this->sendToChat(WhatsAppSender::normalizePhone($phone).'@c.us', $message);
+    }
+
+    /** Send to an existing chat id as given by the gateway (a number, or a privacy id when WhatsApp hides the number). */
+    public function sendToChat(string $chatId, string $message): Response
+    {
         $id = $this->settings->get('wa.openwa_session');
         if (! $id) {
             throw new \RuntimeException('WhatsApp belum dihubungkan: scan QR di Pengaturan → WhatsApp.');
         }
 
         return $this->check($this->http()->post($this->api("sessions/{$id}/messages/send-text"), [
-            'chatId' => WhatsAppSender::normalizePhone($phone).'@c.us',
+            'chatId' => $chatId,
             'text' => $message,
         ]), 'kirim pesan');
+    }
+
+    /** Phone number (digits) behind a contact id such as an @lid, or null when the engine cannot tell. */
+    public function contactPhone(string $contactId): ?string
+    {
+        $id = $this->settings->get('wa.openwa_session');
+        if (! $id) {
+            return null;
+        }
+        $response = $this->http()->get($this->api("sessions/{$id}/contacts/".rawurlencode($contactId).'/phone'));
+
+        return $response->ok() ? ($response->json('phone') ?: null) : null;
+    }
+
+    /** Where OpenWA must deliver incoming messages. */
+    public function webhookUrl(): string
+    {
+        return url('/api/wa/webhook');
+    }
+
+    /** The registered webhook that points at this app, or null. */
+    public function webhook(): ?array
+    {
+        $id = $this->settings->get('wa.openwa_session');
+        if (! $id) {
+            return null;
+        }
+        $list = $this->check($this->http()->get($this->api("sessions/{$id}/webhooks")), 'daftar webhook')->json();
+        foreach ((array) ($list['data'] ?? $list) as $hook) {
+            if (is_array($hook) && ($hook['url'] ?? null) === $this->webhookUrl()) {
+                return $hook;
+            }
+        }
+
+        return null;
+    }
+
+    /** (Re)create the webhook for incoming messages, signed with $secret. Returns the new webhook. */
+    public function registerWebhook(string $secret): array
+    {
+        $id = $this->settings->get('wa.openwa_session');
+        if (! $id) {
+            throw new \RuntimeException('WhatsApp belum dihubungkan: scan QR di Pengaturan → WhatsApp.');
+        }
+        while ($old = $this->webhook()) {
+            $this->check($this->http()->delete($this->api("sessions/{$id}/webhooks/{$old['id']}")), 'hapus webhook lama');
+        }
+
+        return $this->check($this->http()->post($this->api("sessions/{$id}/webhooks"), [
+            'url' => $this->webhookUrl(),
+            'events' => ['message.received'],
+            'secret' => $secret,
+        ]), 'daftarkan webhook')->json();
+    }
+
+    /** Ask OpenWA to POST a test event to the webhook: [reachable, statusCode|error]. */
+    public function testWebhook(string $webhookId): array
+    {
+        $id = $this->settings->get('wa.openwa_session');
+        $json = $this->check($this->http()->post($this->api("sessions/{$id}/webhooks/{$webhookId}/test")), 'tes webhook')->json();
+
+        return [(bool) ($json['success'] ?? false), $json['statusCode'] ?? ($json['error'] ?? null)];
     }
 
     private function remember(string $id): string

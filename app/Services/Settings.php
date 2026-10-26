@@ -22,6 +22,7 @@ class Settings
         'wa.headers', 'wa.openwa_key',
         'dspace.password',
         'kliring.session',
+        'login.webhook_secret',
     ];
 
     public const DEFAULTS = [
@@ -81,6 +82,29 @@ class Settings
         'wa.tpl.ai_accepted' => "Halo {nama} ({nim}),\n\nFile Karya Ilmiah Anda *DITERIMA* oleh pengecekan otomatis dan masuk antrean verifikasi manual oleh pustakawan. Pantau status di {link}.\n\n— Perpustakaan Universitas Andalas",
         'wa.tpl.admin_approved' => "Halo {nama} ({nim}),\n\nKarya Ilmiah Anda telah *DIVERIFIKASI* oleh pustakawan dan akan disimpan ke repositori.\n{catatan}\n\nUntuk surat bebas pustaka, silakan ajukan *permohonan kliring* di https://kliringlib.unand.ac.id dengan akun perpustakaan Anda. Permohonan akan disetujui otomatis.\n\n— Perpustakaan Universitas Andalas",
         'wa.tpl.admin_rejected' => "Halo {nama} ({nim}),\n\nKarya Ilmiah Anda *DITOLAK* pada verifikasi manual.\nCatatan pustakawan: {catatan}\n\nSilakan perbaiki lalu unggah ulang di {link}. Sisa percobaan: {sisa_percobaan}.\n\n— Perpustakaan Universitas Andalas",
+        'login.enabled' => false, // students must log in with a WhatsApp code before uploading
+        'login.wa_number' => null, // the library number shown on the page, e.g. 6281234567890
+        'login.code_minutes' => 30,
+        'login.session_hours' => 6,
+        'login.webhook_secret' => null,
+        'login.webhook_id' => null,
+        'wa.tpl.login_code' => "Kode masuk unggah Karya Ilmiah untuk NIM *{nim}*:
+
+*{kode}*
+
+Masukkan kode ini di halaman unggah, atau ketuk tautan berikut:
+{link}
+
+Kode berlaku {menit} menit dan hanya untuk sekali masuk. Jangan bagikan kode ini ke siapa pun.
+
+— Perpustakaan Universitas Andalas",
+        'wa.tpl.login_help' => "Format pesan belum sesuai. Untuk masuk dan mengunggah Karya Ilmiah, kirim pesan:
+
+kliring_NIM
+
+Contoh: kliring_2011012345
+
+— Perpustakaan Universitas Andalas",
         'wa.tpl.restored' => "Halo {nama} ({nim}),\n\nMohon maaf, penolakan sebelumnya pada Karya Ilmiah Anda keliru. Karya Ilmiah Anda sudah dikembalikan ke antrean verifikasi pustakawan dan *tidak perlu diunggah ulang*. Pantau status di {link}.\n\n— Perpustakaan Universitas Andalas",
         'wa.tpl.deposited' => "Halo {nama} ({nim}),\n\nKarya Ilmiah Anda sudah tersimpan di repositori Universitas Andalas: {handle}\n\n— Perpustakaan Universitas Andalas",
 

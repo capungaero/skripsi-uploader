@@ -81,7 +81,12 @@ Artisan::command('app:cleanup-rejected', function (RejectedFiles $files) {
     $this->info('Removed '.$files->purgeExpired().' kept rejected PDF(s).');
 })->purpose('Delete kept rejected PDFs older than the retention period');
 
+Artisan::command('app:cleanup-student-logins', function (\App\Services\StudentLogins $logins) {
+    $this->info('Removed '.$logins->purge().' expired login code(s).');
+})->purpose('Delete expired student login codes and sessions');
+
 Schedule::command('app:cleanup-staging')->hourly();
+Schedule::command('app:cleanup-student-logins')->dailyAt('03:00');
 Schedule::command('app:cleanup-rejected')->dailyAt('02:00');
 Schedule::command('app:kliring-keepalive')->everyTenMinutes();
 Schedule::command('app:kliring-retry')->hourly();

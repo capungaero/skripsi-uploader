@@ -36,10 +36,13 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('nim-check', fn (Request $r) => Limit::perMinute(30)->by($r->ip()));
         RateLimiter::for('status', fn (Request $r) => Limit::perMinute(60)->by($r->ip()));
-        RateLimiter::for('upload', fn (Request $r) => [
+        RateLimiter::for('upload', fn (Request $r) => array_filter([
             Limit::perHour(5)->by('nim:'.$r->input('nim')),
             Limit::perHour(20)->by('ip:'.$r->ip()), // a lab / campus NAT shares one IP
-        ]);
+            $r->bearerToken() ? Limit::perHour(8)->by('session:'.sha1($r->bearerToken())) : null, // a logged-in student cannot dodge the NIM limit by editing the form
+        ]));
+        // 8-character codes: slow guessing down per IP (a campus NAT shares one IP, hence the generous minute limit).
+        RateLimiter::for('student-login', fn (Request $r) => [Limit::perMinute(15)->by($r->ip()), Limit::perHour(100)->by('login:'.$r->ip())]);
         RateLimiter::for('admin-login', fn (Request $r) => Limit::perMinute(5)->by(strtolower((string) $r->input('email')).'|'.$r->ip()));
     }
 }

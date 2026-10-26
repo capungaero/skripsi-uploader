@@ -12,6 +12,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->alias(['student' => \App\Http\Middleware\EnsureStudentLogin::class]);
         $middleware->redirectGuestsTo('/admin/login');
         $middleware->redirectUsersTo('/admin');
         // Behind the Nginx that also fronts DSpace. In Docker the proxy connects from the compose

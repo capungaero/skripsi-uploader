@@ -1,12 +1,13 @@
 import Alpine from 'alpinejs';
 
 const TOKEN_KEY = 'skripsi_status_token';
+const SESSION_KEY = 'skripsi_student_session';
 
-function storage(action, value) {
+function storage(action, value, key = TOKEN_KEY) {
     try {
-        if (action === 'get') return localStorage.getItem(TOKEN_KEY);
-        if (action === 'set') localStorage.setItem(TOKEN_KEY, value);
-        if (action === 'del') localStorage.removeItem(TOKEN_KEY);
+        if (action === 'get') return localStorage.getItem(key);
+        if (action === 'set') localStorage.setItem(key, value);
+        if (action === 'del') localStorage.removeItem(key);
     } catch (e) {
         return null; // private mode / blocked storage: status link in WhatsApp still works
     }
@@ -26,15 +27,20 @@ Alpine.data('uploader', (schema) => ({
     file: null,
     fileError: null,
     nimState: null,
-    stage: 'form', // form | uploading | status
+    stage: 'form', // login | form | uploading | status
     progress: 0,
     formError: null,
     token: null,
     status: null,
     pollTimer: null,
     dragging: false,
+    session: null, // bearer token of the student who logged in with a WhatsApp code
+    student: null, // { nim, phone }
+    loginCode: '',
+    loginError: null,
+    loggingIn: false,
 
-    init() {
+    async init() {
         for (const f of schema.fields) {
             this.values[f.key] = f.type === 'select' && f.options.length === 1 ? f.options[0] : '';
         }
@@ -45,6 +51,107 @@ Alpine.data('uploader', (schema) => ({
             this.stage = 'status';
             this.loadStatus();
         }
+
+        if (!this.loginRequired()) return;
+        this.session = storage('get', null, SESSION_KEY);
+        const code = params.get('kode');
+        if (code) {
+            history.replaceState(null, '', window.location.pathname);
+            this.token = null;
+            this.status = null;
+            storage('del');
+            this.loginCode = code;
+            await this.login();
+        } else if (this.session) {
+            await this.loadStudent();
+        } else if (this.stage !== 'status') {
+            this.stage = 'login';
+        }
+    },
+
+    loginRequired() {
+        return !!(this.schema.login && this.schema.login.required);
+    },
+
+    authHeaders() {
+        return this.session ? { Authorization: 'Bearer ' + this.session } : {};
+    },
+
+    // The NIM and WhatsApp number come from the login and cannot be edited.
+    locked(key) {
+        return !!this.student && (key === 'nim' || (key === 'no_wa' && !!this.student.phone));
+    },
+
+    applyStudent() {
+        this.values.nim = this.student.nim;
+        if (this.student.phone) this.values.no_wa = this.student.phone;
+        this.errors = {};
+        this.checkNim();
+    },
+
+    async login() {
+        this.loginError = null;
+        if (!this.loginCode.trim()) {
+            this.loginError = 'Masukkan kode dari WhatsApp.';
+            return;
+        }
+        this.loggingIn = true;
+        try {
+            const res = await fetch('/api/login', {
+                method: 'POST',
+                headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: this.loginCode }),
+            });
+            const body = await res.json().catch(() => ({}));
+            if (res.ok && body.token) {
+                this.session = body.token;
+                storage('set', body.token, SESSION_KEY);
+                this.student = { nim: body.nim, phone: body.phone };
+                this.loginCode = '';
+                this.applyStudent();
+                this.stage = 'form';
+            } else {
+                this.loginError = body.message || (res.status === 429 ? 'Terlalu banyak percobaan. Coba lagi beberapa menit lagi.' : 'Gagal masuk. Coba lagi.');
+                this.stage = 'login';
+            }
+        } catch (e) {
+            this.loginError = 'Koneksi terputus. Coba lagi.';
+            this.stage = 'login';
+        }
+        this.loggingIn = false;
+    },
+
+    async loadStudent() {
+        try {
+            const res = await fetch('/api/me', { headers: { Accept: 'application/json', ...this.authHeaders() } });
+            if (res.ok) {
+                this.student = await res.json();
+                this.applyStudent();
+                if (this.stage !== 'status') this.stage = 'form';
+                return;
+            }
+            if (res.status !== 401) return; // server hiccup: keep the session, try again on the next action
+        } catch (e) {
+            return;
+        }
+        this.endSession('Sesi berakhir. Masuk lagi dengan kode baru dari WhatsApp.');
+    },
+
+    endSession(message = null) {
+        this.session = null;
+        this.student = null;
+        storage('del', null, SESSION_KEY);
+        this.loginError = message;
+        if (this.stage !== 'status') this.stage = 'login';
+    },
+
+    async logout() {
+        try {
+            await fetch('/api/logout', { method: 'POST', headers: { Accept: 'application/json', ...this.authHeaders() } });
+        } catch (e) { /* the session simply expires */ }
+        for (const f of this.schema.fields) this.values[f.key] = f.type === 'select' && f.options.length === 1 ? f.options[0] : '';
+        this.nimState = null;
+        this.endSession();
     },
 
     fieldId(key) {
@@ -130,6 +237,7 @@ Alpine.data('uploader', (schema) => ({
         const xhr = new XMLHttpRequest();
         xhr.open('POST', '/api/submissions');
         xhr.setRequestHeader('Accept', 'application/json');
+        if (this.session) xhr.setRequestHeader('Authorization', 'Bearer ' + this.session);
         xhr.upload.onprogress = (e) => {
             if (e.lengthComputable) this.progress = Math.round((e.loaded / e.total) * 100);
         };
@@ -143,6 +251,10 @@ Alpine.data('uploader', (schema) => ({
                 this.stage = 'status';
                 history.replaceState(null, '', '?status=' + body.token);
                 this.poll();
+                return;
+            }
+            if (xhr.status === 401) {
+                this.endSession('Sesi berakhir. Masuk lagi dengan kode baru dari WhatsApp.');
                 return;
             }
             this.stage = 'form';
@@ -192,6 +304,7 @@ Alpine.data('uploader', (schema) => ({
             this.values.judul = this.status.judul;
         }
         this.reset();
+        if (this.student) this.applyStudent();
     },
 
     reset() {
@@ -202,7 +315,7 @@ Alpine.data('uploader', (schema) => ({
         this.status = null;
         this.file = null;
         this.nimState = null;
-        this.stage = 'form';
+        this.stage = this.loginRequired() && !this.session ? 'login' : 'form';
     },
 }));
 
